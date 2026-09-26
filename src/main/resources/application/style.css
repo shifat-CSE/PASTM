@@ -1,0 +1,348 @@
+/* =========================================================
+   GLOBAL — Editorial / Terminal Theme
+   ========================================================= */
+.root {
+    -fx-font-family: "Consolas", "Menlo", "Courier New", monospace;
+    -fx-background-color: #1f2937;
+}
+
+/* =========================================================
+   HEADER BAR
+   ========================================================= */
+.header-bar {
+    -fx-background-color: #1f2937;
+    -fx-padding: 12 22 12 22;
+    -fx-border-color: transparent transparent #d97706 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+/* Logo badge — emerald rounded square (Digital Wellbeing style) */
+.logo-badge {
+    -fx-background-color: linear-gradient(to bottom right, #10b981, #059669);
+    -fx-background-radius: 12;
+    -fx-min-width: 48;
+    -fx-min-height: 48;
+    -fx-max-width: 48;
+    -fx-max-height: 48;
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.4), 6, 0, 0, 2);
+}
+
+.logo-icon {
+    -fx-fill: #ffffff;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+/* The PASTM wordmark */
+.logo-title {
+    -fx-text-fill: #f4f1ea;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-padding: 0 0 0 4;
+}
+
+.header-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f4f1ea;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 13px;
+    -fx-padding: 4 8 4 8;
+    -fx-cursor: hand;
+}
+.header-link:hover { -fx-text-fill: #d97706; }
+
+.header-sep { -fx-text-fill: #4b5563; -fx-font-size: 13px; }
+
+/* =========================================================
+   TAB BAR
+   ========================================================= */
+.tab-bar {
+    -fx-background-color: #f4f1ea;
+    -fx-padding: 6 22 6 22;
+    -fx-border-color: transparent transparent #1f2937 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.tab-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #78716c;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 16 10 16;
+    -fx-border-width: 0 0 3 0;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+.tab-button:hover { -fx-text-fill: #1c1917; }
+
+.tab-active {
+    -fx-text-fill: #1c1917;
+    -fx-border-color: transparent transparent #d97706 transparent;
+    -fx-border-width: 0 0 4 0;
+}
+
+.tab-sep { -fx-text-fill: #c4b8a6; -fx-font-size: 16px; -fx-padding: 0 4 0 4; }
+
+/* =========================================================
+   CONTENT AREA
+   ========================================================= */
+.content-area {
+    -fx-background-color: #1f2937;
+    -fx-padding: 14 22 14 22;
+}
+
+/* =========================================================
+   SECTION HEADINGS
+   ========================================================= */
+.section-heading {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.sub-label { -fx-text-fill: #78716c; -fx-font-size: 11px; }
+
+/* =========================================================
+   NEW SESSION PANEL
+   ========================================================= */
+.session-panel {
+    -fx-background-color: #f4f1ea;
+    -fx-border-color: #d97706;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+}
+
+.underline-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #1c1917 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: #1c1917;
+    -fx-prompt-text-fill: #a8a29e;
+    -fx-font-size: 14px;
+    -fx-padding: 6 4 6 4;
+}
+.underline-input:focused {
+    -fx-border-color: transparent transparent #d97706 transparent;
+}
+
+/* =========================================================
+   ACTIVITY CHIPS
+   ========================================================= */
+.activity-chip {
+    -fx-background-color: transparent;
+    -fx-border-color: #1c1917;
+    -fx-border-width: 1;
+    -fx-text-fill: #1c1917;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 13px;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+}
+.activity-chip:hover {
+    -fx-background-color: #d97706;
+    -fx-text-fill: #f4f1ea;
+    -fx-border-color: #d97706;
+}
+.activity-selected {
+    -fx-background-color: #d97706;
+    -fx-text-fill: #f4f1ea;
+    -fx-border-color: #d97706;
+    -fx-font-weight: bold;
+}
+
+/* =========================================================
+   MOOD BUTTONS
+   ========================================================= */
+.mood-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji";
+    -fx-font-size: 24px;
+    -fx-padding: 4 8 4 8;
+    -fx-cursor: hand;
+}
+.mood-button:hover {
+    -fx-border-color: transparent transparent #d97706 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+.mood-selected {
+    -fx-border-color: transparent transparent #d97706 transparent;
+    -fx-border-width: 0 0 3 0;
+}
+
+.timer-label {
+    -fx-text-fill: #1c1917;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 12 0 12;
+}
+
+.start-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #d97706;
+    -fx-border-width: 2;
+    -fx-text-fill: #d97706;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-padding: 10 22 10 22;
+    -fx-cursor: hand;
+}
+.start-button:hover { -fx-background-color: #d97706; -fx-text-fill: #f4f1ea; }
+
+.stop-button { -fx-border-color: #dc2626; -fx-text-fill: #dc2626; }
+.stop-button:hover { -fx-background-color: #dc2626; -fx-text-fill: #f4f1ea; }
+
+/* =========================================================
+   TABLE PANEL
+   ========================================================= */
+.table-panel {
+    -fx-background-color: #1f2937;
+    -fx-border-color: #d97706;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+}
+
+.session-table {
+    -fx-background-color: #1f2937;
+    -fx-control-inner-background: #1f2937;
+    -fx-control-inner-background-alt: #2d3748;
+    -fx-table-cell-border-color: transparent;
+    -fx-border-color: transparent;
+}
+.session-table .column-header-background {
+    -fx-background-color: #1f2937;
+    -fx-border-color: transparent transparent #d97706 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.session-table .column-header-background .filler,
+.session-table .filler { -fx-background-color: #1f2937; }
+.session-table .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #1c1917 transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-size: 40;
+}
+.session-table .column-header .label {
+    -fx-text-fill: #d97706;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+.session-table .table-row-cell {
+    -fx-background-color: #1f2937;
+    -fx-cell-size: 42;
+    -fx-border-color: transparent transparent #374151 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.session-table .table-row-cell:odd { -fx-background-color: #2d3748; }
+.session-table .table-row-cell:hover { -fx-background-color: #374151; }
+.session-table .table-row-cell:selected { -fx-background-color: #422006; }
+.session-table .table-cell {
+    -fx-text-fill: #e7e5e4;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 13px;
+    -fx-padding: 0 12 0 12;
+}
+.session-table .placeholder .label {
+    -fx-text-fill: #6b7280;
+    -fx-font-style: italic;
+}
+.session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty {
+    -fx-background-color: #1f2937;
+}
+.session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty .table-cell {
+    -fx-border-color: transparent;
+}
+
+/* =========================================================
+   RIGHT PANEL
+   ========================================================= */
+.right-panel { -fx-background-color: transparent; }
+
+.chart-panel, .tip-panel, .streak-panel {
+    -fx-background-color: #f4f1ea;
+    -fx-border-color: #d97706;
+    -fx-border-width: 1;
+    -fx-padding: 18;
+}
+
+.tip-quote {
+    -fx-font-family: "Georgia", serif;
+    -fx-font-style: italic;
+    -fx-font-size: 15px;
+    -fx-text-fill: #1c1917;
+    -fx-line-spacing: 3;
+}
+
+.tip-attribution {
+    -fx-text-fill: #57534e;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 11px;
+}
+
+.link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d97706;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 12px;
+    -fx-padding: 4 0 4 0;
+    -fx-cursor: hand;
+}
+.link-button:hover { -fx-underline: true; }
+
+.streak-number {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 64px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 0 0 0;
+}
+
+.streak-subtitle {
+    -fx-text-fill: #78716c;
+    -fx-font-size: 11px;
+}
+
+/* =========================================================
+   BAR CHART
+   ========================================================= */
+.chart-plot-background { -fx-background-color: transparent; }
+.chart-vertical-grid-lines { -fx-stroke: #d6d3d1; -fx-stroke-dash-array: 3 3; }
+.chart-horizontal-grid-lines { -fx-stroke: transparent; }
+.chart-vertical-zero-line { -fx-stroke: transparent; }
+.chart-horizontal-zero-line { -fx-stroke: #1c1917; -fx-stroke-width: 2; }
+
+.axis {
+    -fx-tick-label-fill: #1c1917;
+    -fx-tick-label-font-family: "Consolas", "Menlo", monospace;
+    -fx-tick-label-font-size: 10px;
+}
+.axis .axis-label { -fx-text-fill: #1c1917; }
+
+.default-color0.chart-bar { -fx-bar-fill: #d97706; }
+.chart-bar { -fx-background-radius: 0; }
+
+/* =========================================================
+   BOTTOM STATUS BAR
+   ========================================================= */
+.status-bar {
+    -fx-background-color: #1f2937;
+    -fx-padding: 10 22 10 22;
+    -fx-border-color: #d97706 transparent transparent transparent;
+    -fx-border-width: 2 0 0 0;
+}
+
+.status-ready {
+    -fx-text-fill: #4ade80;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.status-text {
+    -fx-text-fill: #b8b1a5;
+    -fx-font-size: 12px;
+}
+
+.status-sep { -fx-text-fill: #4b5563; -fx-font-size: 12px; }
+
+.status-build { -fx-text-fill: #6b7280; -fx-font-size: 11px; }
