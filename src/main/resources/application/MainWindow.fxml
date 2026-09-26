@@ -24,18 +24,12 @@
     <!-- TOP HEADER -->
     <top>
         <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="12">
-
-            <!-- Logo badge with Digital Wellbeing (person + heart) icon -->
             <StackPane styleClass="logo-badge">
                 <SVGPath styleClass="logo-icon"
                          content="M12,2.5 C10.07,2.5 8.5,4.07 8.5,6 C8.5,7.93 10.07,9.5 12,9.5 C13.93,9.5 15.5,7.93 15.5,6 C15.5,4.07 13.93,2.5 12,2.5 Z M12,21.5 C7.5,17.5 5,14.5 5,11.5 C5,9 7,7 9.5,7 C10.32,7 11,7.4 12,8.5 C13,7.4 13.68,7 14.5,7 C17,7 19,9 19,11.5 C19,14.5 16.5,17.5 12,21.5 Z"/>
             </StackPane>
-
-            <!-- App title -->
             <Label text="PASTM" styleClass="logo-title"/>
-
             <Region HBox.hgrow="ALWAYS"/>
-
             <Button text="[Light]" onAction="#onLightModeToggle" styleClass="header-link"/>
             <Label text="|" styleClass="header-sep"/>
             <Label fx:id="dateLabel" text="[Date: --]" styleClass="header-link"/>
@@ -47,7 +41,6 @@
     <!-- CENTER -->
     <center>
         <VBox>
-
             <!-- Tab bar -->
             <HBox styleClass="tab-bar" alignment="CENTER_LEFT" spacing="8">
                 <Button fx:id="tabScreen" text="SCREEN TIME" onAction="#onTabScreen"
@@ -65,21 +58,14 @@
 
             <!-- Main content -->
             <HBox spacing="15" styleClass="content-area">
-
-                <!-- LEFT COLUMN -->
                 <VBox spacing="15" HBox.hgrow="ALWAYS">
-
-                    <!-- New Session panel -->
                     <VBox styleClass="session-panel" spacing="12">
                         <Label text="▌ NEW SESSION" styleClass="section-heading"/>
-
                         <Label text="&gt; SELECT ACTIVITY" styleClass="sub-label"/>
                         <FlowPane fx:id="activityChipBox" hgap="10" vgap="10" prefWrapLength="720"/>
-
                         <Label text="&gt; OR TYPE CUSTOM" styleClass="sub-label"/>
                         <TextField fx:id="activityField" promptText="custom activity name..."
                                    styleClass="underline-input"/>
-
                         <Label text="&gt; MOOD (before session)" styleClass="sub-label"/>
                         <HBox spacing="18" alignment="CENTER_LEFT">
                             <HBox fx:id="moodBox" spacing="18" alignment="CENTER_LEFT"/>
@@ -90,7 +76,6 @@
                         </HBox>
                     </VBox>
 
-                    <!-- Today's Activity table -->
                     <VBox VBox.vgrow="ALWAYS" styleClass="table-panel" spacing="10">
                         <Label text="▌ TODAY'S ACTIVITY" styleClass="section-heading"/>
                         <TableView fx:id="sessionTable" VBox.vgrow="ALWAYS"
@@ -106,18 +91,12 @@
                     </VBox>
                 </VBox>
 
-                <!-- RIGHT PANEL -->
                 <VBox spacing="15" prefWidth="340" styleClass="right-panel">
-
                     <VBox styleClass="chart-panel" spacing="8">
                         <Label text="▌ TIME OF DAY" styleClass="section-heading"/>
-                        <BarChart fx:id="timeOfDayChart" prefHeight="200">
-                            <xAxis>
-                                <CategoryAxis/>
-                            </xAxis>
-                            <yAxis>
-                                <NumberAxis/>
-                            </yAxis>
+                        <BarChart fx:id="timeOfDayChart" prefHeight="180">
+                            <xAxis><CategoryAxis/></xAxis>
+                            <yAxis><NumberAxis/></yAxis>
                         </BarChart>
                     </VBox>
 

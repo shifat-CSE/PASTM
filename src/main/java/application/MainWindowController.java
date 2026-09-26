@@ -1,7 +1,5 @@
 package application;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,35 +10,31 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.util.Duration;
 import model.Mood;
 import model.Session;
+import service.SessionCounter;
+import service.StatsCalculator;
+import service.ThreadManager;
+import service.TimerThread;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.Future;
 
-/**
- * Week 3: Main controller.
- * v2: Activity chips replace the free-text typing flow — click to select like v1.
- */
 public class MainWindowController {
 
-    // ---- Header ----
     @FXML private Label dateLabel;
     @FXML private Label statusLabel;
 
-    // ---- Tab bar ----
     @FXML private Button tabScreen, tabStudy, tabSleep, tabJournal;
 
-    // ---- New Session panel ----
     @FXML private FlowPane activityChipBox;
     @FXML private TextField activityField;
     @FXML private HBox moodBox;
     @FXML private Button startBtn;
     @FXML private Label timerLabel;
 
-    // ---- Table ----
     @FXML private TableView<Session> sessionTable;
     @FXML private TableColumn<Session, String> colActivity;
     @FXML private TableColumn<Session, String> colCategory;
@@ -48,31 +42,22 @@ public class MainWindowController {
     @FXML private TableColumn<Session, String> colRating;
     @FXML private TableColumn<Session, String> colMood;
 
-    // ---- Right panel ----
     @FXML private BarChart<String, Number> timeOfDayChart;
     @FXML private Label tipLabel;
 
-    // ---- Data ----
     private final ObservableList<Session> allSessions = FXCollections.observableArrayList();
     private final ObservableList<Session> visibleSessions = FXCollections.observableArrayList();
-
-    /**
-     * Category → list of predefined activities.
-     * This is the "app list" that replaces v1's icon grid.
-     * Phase 3 (SQLite) will make this user-editable.
-     */
     private final Map<String, List<String>> activitiesByCategory = new LinkedHashMap<>();
 
+    private TimerThread sessionTimer;
     private Session currentSession;
     private Mood selectedMood = Mood.NEUTRAL;
     private String selectedActivity = null;
-    private Timeline runningTimer;
     private int elapsedSeconds = 0;
     private String activeCategory = "Screen Time";
 
-    // ============================================================
-    //  INIT
-    // ============================================================
+    private final ThreadManager threadManager = ThreadManager.getInstance();
+
     @FXML
     public void initialize() {
         seedActivities();
@@ -81,11 +66,8 @@ public class MainWindowController {
         setupMoodPicker();
         loadSampleData();
         configureBarChart();
-
-        // Render chips for the initially active tab
         renderActivityChips();
 
-        // When the user types a custom name, deselect any chip
         activityField.textProperty().addListener((obs, oldV, newV) -> {
             if (!newV.isEmpty() && selectedActivity != null && !newV.equals(selectedActivity)) {
                 selectedActivity = null;
@@ -93,22 +75,24 @@ public class MainWindowController {
             }
         });
 
+        threadManager.startConsumer(this::onSessionProcessed);
         refreshTable();
     }
 
-    /** The activity lists — one per category. */
+    private void onSessionProcessed() {
+        SessionCounter c = threadManager.getCounter();
+        statusLabel.setText("● " + c.getTotalSessions() + " PROCESSED");
+    }
+
     private void seedActivities() {
         activitiesByCategory.put("Screen Time", Arrays.asList(
                 "YouTube", "Facebook", "Instagram", "WhatsApp",
-                "Chrome", "TikTok", "Twitter", "Reddit"
-        ));
+                "Chrome", "TikTok", "Twitter", "Reddit"));
         activitiesByCategory.put("Study Time", Arrays.asList(
                 "Java", "DSA", "Math", "Physics",
-                "Chemistry", "English", "Revision", "Assignment"
-        ));
+                "Chemistry", "English", "Revision", "Assignment"));
         activitiesByCategory.put("Sleep Time", Arrays.asList(
-                "Night Sleep", "Nap", "Rest"
-        ));
+                "Night Sleep", "Nap", "Rest"));
     }
 
     private void setupHeader() {
@@ -171,11 +155,9 @@ public class MainWindowController {
         }
     }
 
-    /** Rebuilds the activity chip row based on active category. */
     private void renderActivityChips() {
         activityChipBox.getChildren().clear();
         List<String> activities = activitiesByCategory.getOrDefault(activeCategory, List.of());
-
         for (String name : activities) {
             Button chip = new Button(name);
             chip.getStyleClass().add("activity-chip");
@@ -186,8 +168,6 @@ public class MainWindowController {
             });
             activityChipBox.getChildren().add(chip);
         }
-
-        // Reset selection when the tab changes
         selectedActivity = null;
         activityField.clear();
     }
@@ -227,9 +207,6 @@ public class MainWindowController {
         timeOfDayChart.setAnimated(false);
     }
 
-    // ============================================================
-    //  TAB HANDLERS
-    // ============================================================
     @FXML private void onTabScreen() { switchTab("Screen Time", tabScreen); }
     @FXML private void onTabStudy()  { switchTab("Study Time", tabStudy); }
     @FXML private void onTabSleep()  { switchTab("Sleep Time", tabSleep); }
@@ -239,14 +216,14 @@ public class MainWindowController {
         setActiveTab(tabJournal);
         visibleSessions.clear();
         activityChipBox.getChildren().clear();
-        sessionTable.setPlaceholder(new Label("Journal view — coming in Phase 2"));
+        sessionTable.setPlaceholder(new Label("Journal view — coming soon"));
     }
 
     private void switchTab(String category, Button tab) {
         activeCategory = category;
         setActiveTab(tab);
         sessionTable.setPlaceholder(new Label("No sessions in " + category + " yet."));
-        renderActivityChips();   // rebuild chips for the new category
+        renderActivityChips();
         refreshTable();
     }
 
@@ -268,9 +245,6 @@ public class MainWindowController {
         }
     }
 
-    // ============================================================
-    //  SESSION LIFECYCLE
-    // ============================================================
     @FXML
     private void onStartSession() {
         if (currentSession != null) {
@@ -284,7 +258,6 @@ public class MainWindowController {
             return;
         }
 
-        // Use the category from the active tab (no more dropdown)
         currentSession = new Session(activity, activeCategory, selectedMood);
         elapsedSeconds = 0;
 
@@ -294,17 +267,18 @@ public class MainWindowController {
         activityField.setDisable(true);
         activityChipBox.setDisable(true);
 
-        startRunningTimer();
-    }
-
-    private void startRunningTimer() {
-        runningTimer = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
-            elapsedSeconds++;
-            updateTimerDisplay();
-        }));
-        runningTimer.setCycleCount(Timeline.INDEFINITE);
-        runningTimer.play();
-        updateTimerDisplay();
+        sessionTimer = new TimerThread("session-timer-" + activity, new TimerThread.TickListener() {
+            @Override
+            public void onTick(int s) {
+                elapsedSeconds = s;
+                updateTimerDisplay();
+            }
+            @Override
+            public void onFinish(int s) {
+                System.out.println("[timer] finished at " + s + "s");
+            }
+        });
+        sessionTimer.start();
     }
 
     private void updateTimerDisplay() {
@@ -315,10 +289,19 @@ public class MainWindowController {
     }
 
     private void stopSession() {
-        if (runningTimer != null) runningTimer.stop();
+        if (sessionTimer != null) {
+            sessionTimer.stopTimer();
+            sessionTimer = null;
+        }
 
         currentSession.setDurationSeconds(elapsedSeconds);
         allSessions.add(currentSession);
+
+        try {
+            threadManager.getQueue().put(currentSession);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         timerLabel.setText("00:00:00");
         activityField.clear();
@@ -335,27 +318,39 @@ public class MainWindowController {
         refreshTable();
     }
 
-    // ============================================================
-    //  HEADER ACTIONS
-    // ============================================================
     @FXML
     private void onLightModeToggle() {
-        showInfo("Theme", "Dark-mode toggle will be wired in Phase 2 (Week 4).");
+        showInfo("Theme", "Dark-mode toggle coming in Phase 5.");
     }
 
     @FXML
     private void onUserClicked() {
-        showInfo("Profile", "User profile editor comes in Phase 2 (Week 4).");
+        showInfo("Profile", "User profile editor coming in Phase 5.");
     }
 
     @FXML
     private void onRefreshTip() {
-        tipLabel.setText("\u201CDiscipline equals freedom.\u201D");
+        List<Session> snapshot = new ArrayList<>(allSessions);
+        Future<String> future = threadManager.submitCalculation(new StatsCalculator(snapshot));
+
+        new Thread(() -> {
+            try {
+                String stats = future.get();
+                javafx.application.Platform.runLater(() -> showInfo("Today's Stats", stats));
+            } catch (Exception ex) {
+                javafx.application.Platform.runLater(() ->
+                        showWarning("Stats failed: " + ex.getMessage()));
+            }
+        }, "stats-waiter").start();
     }
 
-    // ============================================================
-    //  HELPERS
-    // ============================================================
+    public void stopAll() {
+        if (sessionTimer != null) {
+            sessionTimer.stopTimer();
+            sessionTimer = null;
+        }
+    }
+
     private void showInfo(String title, String content) {
         Alert a = new Alert(Alert.AlertType.INFORMATION);
         a.setTitle(title); a.setHeaderText(null); a.setContentText(content); a.showAndWait();

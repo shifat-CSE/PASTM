@@ -3,6 +3,7 @@ package model;
 import java.time.LocalDate;
 
 public class Session {
+
     private String activity;
     private String category;
     private int durationSeconds;

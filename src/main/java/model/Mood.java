@@ -1,9 +1,5 @@
 package model;
 
-/**
- * Week 1: Enum representing the user's mood before a session.
- * Using an enum keeps the values fixed and prevents typos like "hapy" vs "happy".
- */
 public enum Mood {
     HAPPY("😀", "Happy"),
     CONTENT("🙂", "Content"),
@@ -22,7 +18,6 @@ public enum Mood {
     public String getEmoji() { return emoji; }
     public String getLabel() { return label; }
 
-    /** Reverse lookup from emoji character. */
     public static Mood fromEmoji(String e) {
         for (Mood m : values()) {
             if (m.emoji.equals(e)) return m;

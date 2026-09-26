@@ -3,6 +3,7 @@ package model;
 import java.time.LocalDate;
 
 public class JournalEntry {
+
     private LocalDate date;
     private String morning;
     private String evening;
@@ -22,9 +23,7 @@ public class JournalEntry {
     public String getEvening() { return evening; }
     public void setEvening(String evening) { this.evening = evening; }
 
-    public int getTotalWords() {
-        return countWords(morning) + countWords(evening);
-    }
+    public int getTotalWords() { return countWords(morning) + countWords(evening); }
 
     private int countWords(String text) {
         if (text == null || text.isBlank()) return 0;
