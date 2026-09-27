@@ -1,19 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.chart.BarChart?>
-<?import javafx.scene.chart.CategoryAxis?>
-<?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.SVGPath?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
@@ -21,7 +10,6 @@
             fx:controller="application.MainWindowController"
             styleClass="root">
 
-    <!-- TOP HEADER -->
     <top>
         <HBox styleClass="header-bar" alignment="CENTER_LEFT" spacing="12">
             <StackPane styleClass="logo-badge">
@@ -32,80 +20,188 @@
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="[Light]" onAction="#onLightModeToggle" styleClass="header-link"/>
             <Label text="|" styleClass="header-sep"/>
+            <Button fx:id="exportBtn" text="[Export]" onAction="#onExport" styleClass="header-link"/>
+            <Label text="|" styleClass="header-sep"/>
             <Label fx:id="dateLabel" text="[Date: --]" styleClass="header-link"/>
             <Label text="|" styleClass="header-sep"/>
             <Button text="[User]" onAction="#onUserClicked" styleClass="header-link"/>
         </HBox>
     </top>
 
-    <!-- CENTER -->
     <center>
         <VBox>
-            <!-- Tab bar -->
             <HBox styleClass="tab-bar" alignment="CENTER_LEFT" spacing="8">
                 <Button fx:id="tabScreen" text="SCREEN TIME" onAction="#onTabScreen"
                         styleClass="tab-button, tab-active"/>
                 <Label text="|" styleClass="tab-sep"/>
-                <Button fx:id="tabStudy" text="STUDY TIME" onAction="#onTabStudy"
-                        styleClass="tab-button"/>
+                <Button fx:id="tabStudy" text="STUDY TIME" onAction="#onTabStudy" styleClass="tab-button"/>
                 <Label text="|" styleClass="tab-sep"/>
-                <Button fx:id="tabSleep" text="SLEEP TIME" onAction="#onTabSleep"
-                        styleClass="tab-button"/>
+                <Button fx:id="tabSleep" text="SLEEP TIME" onAction="#onTabSleep" styleClass="tab-button"/>
                 <Label text="|" styleClass="tab-sep"/>
-                <Button fx:id="tabJournal" text="JOURNAL" onAction="#onTabJournal"
-                        styleClass="tab-button"/>
+                <Button fx:id="tabJournal" text="JOURNAL" onAction="#onTabJournal" styleClass="tab-button"/>
             </HBox>
 
-            <!-- Main content -->
             <HBox spacing="15" styleClass="content-area">
                 <VBox spacing="15" HBox.hgrow="ALWAYS">
-                    <VBox styleClass="session-panel" spacing="12">
-                        <Label text="▌ NEW SESSION" styleClass="section-heading"/>
-                        <Label text="&gt; SELECT ACTIVITY" styleClass="sub-label"/>
-                        <FlowPane fx:id="activityChipBox" hgap="10" vgap="10" prefWrapLength="720"/>
-                        <Label text="&gt; OR TYPE CUSTOM" styleClass="sub-label"/>
-                        <TextField fx:id="activityField" promptText="custom activity name..."
-                                   styleClass="underline-input"/>
-                        <Label text="&gt; MOOD (before session)" styleClass="sub-label"/>
-                        <HBox spacing="18" alignment="CENTER_LEFT">
-                            <HBox fx:id="moodBox" spacing="18" alignment="CENTER_LEFT"/>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Label fx:id="timerLabel" text="00:00:00" styleClass="timer-label"/>
-                            <Button fx:id="startBtn" text="▶ START SESSION"
-                                    onAction="#onStartSession" styleClass="start-button"/>
-                        </HBox>
+
+                    <VBox fx:id="mainPanel" spacing="15" VBox.vgrow="ALWAYS">
+
+                        <VBox fx:id="sessionPanel" styleClass="session-panel" spacing="12">
+                            <Label text="▌ NEW SESSION" styleClass="section-heading"/>
+                            <Label text="&gt; SELECT ACTIVITY" styleClass="sub-label"/>
+                            <FlowPane fx:id="activityChipBox" hgap="10" vgap="10" prefWrapLength="720"/>
+                            <Label text="&gt; OR TYPE CUSTOM" styleClass="sub-label"/>
+                            <TextField fx:id="activityField" promptText="custom activity name..."
+                                       styleClass="underline-input"/>
+                            <Label text="&gt; MOOD (before session)" styleClass="sub-label"/>
+                            <HBox spacing="18" alignment="CENTER_LEFT">
+                                <HBox fx:id="moodBox" spacing="18" alignment="CENTER_LEFT"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="timerLabel" text="00:00:00" styleClass="timer-label"/>
+                                <Button fx:id="pauseBtn" text="⏸ PAUSE" visible="false" managed="false"
+                                        onAction="#onPauseResume" styleClass="pause-button"/>
+                                <Button fx:id="startBtn" text="▶ START SESSION"
+                                        onAction="#onStartSession" styleClass="start-button"/>
+                            </HBox>
+                        </VBox>
+
+                        <VBox fx:id="sleepPanel" visible="false" managed="false"
+                              styleClass="session-panel" spacing="14">
+                            <Label text="▌ SLEEP LOG — MANUAL ENTRY" styleClass="section-heading"/>
+                            <Label text="Enter how long you slept. You can edit this anytime."
+                                   styleClass="sub-label"/>
+                            <HBox spacing="20" alignment="CENTER_LEFT">
+                                <Label text="Hours:" styleClass="sub-label"/>
+                                <TextField fx:id="sleepHoursField" promptText="7"
+                                           prefWidth="80" styleClass="underline-input"/>
+                                <Label text="Minutes:" styleClass="sub-label"/>
+                                <TextField fx:id="sleepMinutesField" promptText="0"
+                                           prefWidth="80" styleClass="underline-input"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="sleepClearBtn" text="✕ Clear"
+                                        onAction="#onClearSleep" styleClass="pause-button"/>
+                                <Button fx:id="sleepSaveBtn" text="💾  Save Sleep"
+                                        onAction="#onSaveSleep" styleClass="start-button"/>
+                            </HBox>
+                            <Region prefHeight="4"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Today:" styleClass="sub-label"/>
+                                <Label fx:id="sleepTodayLabel" text="No sleep logged for today"
+                                       styleClass="sleep-status"/>
+                            </HBox>
+                        </VBox>
+
+                        <VBox VBox.vgrow="ALWAYS" styleClass="table-panel" spacing="10">
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <Label text="▌ TODAY'S ACTIVITY" styleClass="section-heading"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <CheckBox fx:id="favoritesFilter" text="Favorites only"
+                                          styleClass="favorites-filter"/>
+                                <TextField fx:id="searchField" promptText="search..." prefWidth="160"
+                                           styleClass="search-field"/>
+                            </HBox>
+                            <TableView fx:id="sessionTable" VBox.vgrow="ALWAYS" styleClass="session-table">
+                                <columns>
+                                    <TableColumn fx:id="colFavorite" text="★" prefWidth="50"/>
+                                    <TableColumn fx:id="colActivity" text="ACTIVITY" prefWidth="220"/>
+                                    <TableColumn fx:id="colCategory" text="CATEGORY" prefWidth="140"/>
+                                    <TableColumn fx:id="colDuration" text="DURATION" prefWidth="120"/>
+                                    <TableColumn fx:id="colRating" text="RATING" prefWidth="150"/>
+                                    <TableColumn fx:id="colMood" text="MOOD" prefWidth="80"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
                     </VBox>
 
-                    <VBox VBox.vgrow="ALWAYS" styleClass="table-panel" spacing="10">
-                        <Label text="▌ TODAY'S ACTIVITY" styleClass="section-heading"/>
-                        <TableView fx:id="sessionTable" VBox.vgrow="ALWAYS"
-                                   styleClass="session-table">
-                            <columns>
-                                <TableColumn fx:id="colActivity" text="ACTIVITY" prefWidth="240"/>
-                                <TableColumn fx:id="colCategory" text="CATEGORY" prefWidth="150"/>
-                                <TableColumn fx:id="colDuration" text="DURATION" prefWidth="130"/>
-                                <TableColumn fx:id="colRating" text="RATING" prefWidth="160"/>
-                                <TableColumn fx:id="colMood" text="MOOD" prefWidth="100"/>
-                            </columns>
-                        </TableView>
+                    <VBox fx:id="journalPanel" visible="false" managed="false"
+                          spacing="12" VBox.vgrow="ALWAYS">
+                        <VBox styleClass="session-panel" spacing="10">
+                            <Label text="▌ DAILY WORKFLOW JOURNAL" styleClass="section-heading"/>
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <Label text="Date:" styleClass="sub-label"/>
+                                <DatePicker fx:id="journalDatePicker" prefWidth="180"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="journalStatus" text="● " styleClass="sub-label"/>
+                            </HBox>
+                        </VBox>
+
+                        <ScrollPane fitToWidth="true" styleClass="journal-scroll" VBox.vgrow="ALWAYS">
+                            <VBox spacing="10">
+                                <VBox styleClass="journal-slot" spacing="6">
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="🌅" styleClass="journal-slot-icon"/>
+                                        <Label text="MORNING" styleClass="journal-slot-title"/>
+                                        <Label text="06:00 — 12:00" styleClass="journal-slot-time"/>
+                                    </HBox>
+                                    <TextArea fx:id="journalMorning" wrapText="true"
+                                              prefRowCount="3" styleClass="journal-textarea"
+                                              promptText="What did you plan or do this morning? Any wins?"/>
+                                </VBox>
+
+                                <VBox styleClass="journal-slot" spacing="6">
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="☀" styleClass="journal-slot-icon"/>
+                                        <Label text="NOON" styleClass="journal-slot-title"/>
+                                        <Label text="12:00 — 14:00" styleClass="journal-slot-time"/>
+                                    </HBox>
+                                    <TextArea fx:id="journalNoon" wrapText="true"
+                                              prefRowCount="2" styleClass="journal-textarea"
+                                              promptText="Lunch break, quick tasks, anything worth noting?"/>
+                                </VBox>
+
+                                <VBox styleClass="journal-slot" spacing="6">
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="🌤" styleClass="journal-slot-icon"/>
+                                        <Label text="AFTERNOON" styleClass="journal-slot-title"/>
+                                        <Label text="14:00 — 18:00" styleClass="journal-slot-time"/>
+                                    </HBox>
+                                    <TextArea fx:id="journalAfternoon" wrapText="true"
+                                              prefRowCount="3" styleClass="journal-textarea"
+                                              promptText="Deep work? What moved forward? What got stuck?"/>
+                                </VBox>
+
+                                <VBox styleClass="journal-slot" spacing="6">
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="🌆" styleClass="journal-slot-icon"/>
+                                        <Label text="EVENING" styleClass="journal-slot-title"/>
+                                        <Label text="18:00 — 21:00" styleClass="journal-slot-time"/>
+                                    </HBox>
+                                    <TextArea fx:id="journalEvening" wrapText="true"
+                                              prefRowCount="3" styleClass="journal-textarea"
+                                              promptText="Wind-down activities, family time, exercise?"/>
+                                </VBox>
+
+                                <VBox styleClass="journal-slot" spacing="6">
+                                    <HBox spacing="10" alignment="CENTER_LEFT">
+                                        <Label text="🌙" styleClass="journal-slot-icon"/>
+                                        <Label text="NIGHT" styleClass="journal-slot-title"/>
+                                        <Label text="21:00 — 06:00" styleClass="journal-slot-time"/>
+                                    </HBox>
+                                    <TextArea fx:id="journalNight" wrapText="true"
+                                              prefRowCount="4" styleClass="journal-textarea"
+                                              promptText="Reflect on the day. What did you learn? What will you do differently?"/>
+                                </VBox>
+                            </VBox>
+                        </ScrollPane>
                     </VBox>
                 </VBox>
 
                 <VBox spacing="15" prefWidth="340" styleClass="right-panel">
+
+                    <!-- SCREEN TIME BY APP — PIE CHART -->
                     <VBox styleClass="chart-panel" spacing="8">
-                        <Label text="▌ TIME OF DAY" styleClass="section-heading"/>
-                        <BarChart fx:id="timeOfDayChart" prefHeight="180">
-                            <xAxis><CategoryAxis/></xAxis>
-                            <yAxis><NumberAxis/></yAxis>
-                        </BarChart>
+                        <Label text="▌ SCREEN TIME BY APP" styleClass="section-heading"/>
+                        <PieChart fx:id="screenTimePieChart"
+                                  prefHeight="220"
+                                  labelsVisible="true"
+                                  legendVisible="true"
+                                  startAngle="90"/>
                     </VBox>
 
                     <VBox styleClass="tip-panel" spacing="10">
                         <Label text="▌ DAILY TIP" styleClass="section-heading"/>
-                        <Label fx:id="tipLabel"
-                               text="&quot;Discipline equals freedom.&quot;"
-                               wrapText="true"
-                               styleClass="tip-quote"/>
+                        <Label fx:id="tipLabel" text="&quot;Discipline equals freedom.&quot;"
+                               wrapText="true" styleClass="tip-quote"/>
                         <Label text="— JOCKO WILLINK" styleClass="tip-attribution"/>
                         <Region prefHeight="5"/>
                         <Button text="[refresh]" onAction="#onRefreshTip" styleClass="link-button"/>
@@ -113,7 +209,7 @@
 
                     <VBox styleClass="streak-panel" spacing="5" alignment="CENTER_LEFT">
                         <Label text="▌ DAY STREAK" styleClass="section-heading"/>
-                        <Label text="07" styleClass="streak-number"/>
+                        <Label fx:id="streakLabel" text="00" styleClass="streak-number"/>
                         <Label text="keep going" styleClass="streak-subtitle"/>
                     </VBox>
                 </VBox>
@@ -121,20 +217,13 @@
         </VBox>
     </center>
 
-    <!-- BOTTOM STATUS BAR -->
     <bottom>
         <HBox styleClass="status-bar" alignment="CENTER_LEFT" spacing="14">
             <Label fx:id="statusLabel" text="● READY" styleClass="status-ready"/>
             <Label text="|" styleClass="status-sep"/>
-            <Label text="7-day streak" styleClass="status-text"/>
+            <Label text="double-click a row to edit" styleClass="status-text"/>
             <Label text="|" styleClass="status-sep"/>
-            <Label text="4.2 avg rating" styleClass="status-text"/>
-            <Label text="|" styleClass="status-sep"/>
-            <Label text="4h 12m today" styleClass="status-text"/>
-            <Label text="|" styleClass="status-sep"/>
-            <Label text="12 sessions" styleClass="status-text"/>
-            <Label text="|" styleClass="status-sep"/>
-            <Label text="all data local" styleClass="status-text"/>
+            <Label text="favorite via ★" styleClass="status-text"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label text="[build 2.0.1]" styleClass="status-build"/>
         </HBox>

@@ -1,5 +1,5 @@
 /* =========================================================
-   GLOBAL — Editorial / Terminal Theme
+   GLOBAL
    ========================================================= */
 .root {
     -fx-font-family: "Consolas", "Menlo", "Courier New", monospace;
@@ -19,12 +19,18 @@
 .logo-badge {
     -fx-background-color: linear-gradient(to bottom right, #10b981, #059669);
     -fx-background-radius: 12;
-    -fx-min-width: 44; -fx-min-height: 44;
-    -fx-max-width: 44; -fx-max-height: 44;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-max-width: 44;
+    -fx-max-height: 44;
     -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.4), 6, 0, 0, 2);
 }
 
-.logo-icon { -fx-fill: #ffffff; -fx-scale-x: 0.9; -fx-scale-y: 0.9; }
+.logo-icon {
+    -fx-fill: #ffffff;
+    -fx-scale-x: 0.9;
+    -fx-scale-y: 0.9;
+}
 
 .logo-title {
     -fx-text-fill: #f4f1ea;
@@ -42,7 +48,10 @@
 }
 .header-link:hover { -fx-text-fill: #d97706; }
 
-.header-sep { -fx-text-fill: #4b5563; -fx-font-size: 13px; }
+.header-sep {
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 13px;
+}
 
 /* =========================================================
    TAB BAR
@@ -72,7 +81,11 @@
     -fx-border-width: 0 0 4 0;
 }
 
-.tab-sep { -fx-text-fill: #c4b8a6; -fx-font-size: 16px; -fx-padding: 0 4 0 4; }
+.tab-sep {
+    -fx-text-fill: #c4b8a6;
+    -fx-font-size: 16px;
+    -fx-padding: 0 4 0 4;
+}
 
 /* =========================================================
    CONTENT AREA
@@ -85,11 +98,19 @@
 /* =========================================================
    SECTION HEADINGS
    ========================================================= */
-.section-heading { -fx-text-fill: #d97706; -fx-font-size: 12px; -fx-font-weight: bold; }
-.sub-label { -fx-text-fill: #78716c; -fx-font-size: 11px; }
+.section-heading {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.sub-label {
+    -fx-text-fill: #78716c;
+    -fx-font-size: 11px;
+}
 
 /* =========================================================
-   NEW SESSION PANEL
+   SESSION PANEL
    ========================================================= */
 .session-panel {
     -fx-background-color: #f4f1ea;
@@ -107,7 +128,9 @@
     -fx-font-size: 14px;
     -fx-padding: 6 4 6 4;
 }
-.underline-input:focused { -fx-border-color: transparent transparent #d97706 transparent; }
+.underline-input:focused {
+    -fx-border-color: transparent transparent #d97706 transparent;
+}
 
 /* =========================================================
    ACTIVITY CHIPS
@@ -144,10 +167,24 @@
     -fx-padding: 4 8 4 8;
     -fx-cursor: hand;
 }
-.mood-button:hover { -fx-border-color: transparent transparent #d97706 transparent; -fx-border-width: 0 0 2 0; }
-.mood-selected { -fx-border-color: transparent transparent #d97706 transparent; -fx-border-width: 0 0 3 0; }
+.mood-button:hover {
+    -fx-border-color: transparent transparent #d97706 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+.mood-selected {
+    -fx-border-color: transparent transparent #d97706 transparent;
+    -fx-border-width: 0 0 3 0;
+}
 
-.timer-label { -fx-text-fill: #1c1917; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 12 0 12; }
+/* =========================================================
+   TIMER + BUTTONS
+   ========================================================= */
+.timer-label {
+    -fx-text-fill: #1c1917;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 12 0 12;
+}
 
 .start-button {
     -fx-background-color: transparent;
@@ -159,10 +196,34 @@
     -fx-padding: 10 22 10 22;
     -fx-cursor: hand;
 }
-.start-button:hover { -fx-background-color: #d97706; -fx-text-fill: #f4f1ea; }
+.start-button:hover {
+    -fx-background-color: #d97706;
+    -fx-text-fill: #f4f1ea;
+}
 
-.stop-button { -fx-border-color: #dc2626; -fx-text-fill: #dc2626; }
-.stop-button:hover { -fx-background-color: #dc2626; -fx-text-fill: #f4f1ea; }
+.stop-button {
+    -fx-border-color: #dc2626;
+    -fx-text-fill: #dc2626;
+}
+.stop-button:hover {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: #f4f1ea;
+}
+
+.pause-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #6b7280;
+    -fx-border-width: 2;
+    -fx-text-fill: #6b7280;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 10 16 10 16;
+    -fx-cursor: hand;
+}
+.pause-button:hover {
+    -fx-background-color: #6b7280;
+    -fx-text-fill: #f4f1ea;
+}
 
 /* =========================================================
    TABLE PANEL
@@ -172,6 +233,18 @@
     -fx-border-color: #d97706;
     -fx-border-width: 1;
     -fx-padding: 16;
+}
+
+.favorites-filter {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 12px;
+}
+.favorites-filter .box {
+    -fx-background-color: #1f2937;
+    -fx-border-color: #d97706;
+}
+.favorites-filter:selected .mark {
+    -fx-background-color: #d97706;
 }
 
 .session-table {
@@ -187,32 +260,112 @@
     -fx-border-width: 0 0 1 0;
 }
 .session-table .column-header-background .filler,
-.session-table .filler { -fx-background-color: #1f2937; }
+.session-table .filler {
+    -fx-background-color: #1f2937;
+}
 .session-table .column-header {
     -fx-background-color: transparent;
     -fx-border-color: transparent transparent #1c1917 transparent;
     -fx-border-width: 0 0 2 0;
     -fx-size: 40;
 }
-.session-table .column-header .label { -fx-text-fill: #d97706; -fx-font-size: 11px; -fx-font-weight: bold; }
+.session-table .column-header .label {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
 .session-table .table-row-cell {
     -fx-background-color: #1f2937;
     -fx-cell-size: 42;
     -fx-border-color: transparent transparent #374151 transparent;
     -fx-border-width: 0 0 1 0;
 }
-.session-table .table-row-cell:odd { -fx-background-color: #2d3748; }
-.session-table .table-row-cell:hover { -fx-background-color: #374151; }
-.session-table .table-row-cell:selected { -fx-background-color: #422006; }
-.session-table .table-cell { -fx-text-fill: #e7e5e4; -fx-font-size: 13px; -fx-padding: 0 12 0 12; }
-.session-table .placeholder .label { -fx-text-fill: #6b7280; -fx-font-style: italic; }
-.session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty { -fx-background-color: #1f2937; }
-.session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty .table-cell { -fx-border-color: transparent; }
+.session-table .table-row-cell:odd {
+    -fx-background-color: #2d3748;
+}
+.session-table .table-row-cell:hover {
+    -fx-background-color: #374151;
+}
+.session-table .table-row-cell:selected {
+    -fx-background-color: #422006;
+}
+.session-table .table-cell {
+    -fx-text-fill: #e7e5e4;
+    -fx-font-size: 13px;
+    -fx-padding: 0 12 0 12;
+}
+.session-table .placeholder .label {
+    -fx-text-fill: #6b7280;
+    -fx-font-style: italic;
+}
+.session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty {
+    -fx-background-color: #1f2937;
+}
+.session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty .table-cell {
+    -fx-border-color: transparent;
+}
+
+/* =========================================================
+   JOURNAL — 5 time slots
+   ========================================================= */
+.journal-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.journal-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.journal-slot {
+    -fx-background-color: #1f2937;
+    -fx-border-color: #d97706;
+    -fx-border-width: 1;
+    -fx-padding: 12 16 12 16;
+}
+
+.journal-slot-icon {
+    -fx-font-size: 18px;
+    -fx-font-family: "Segoe UI Emoji", "Apple Color Emoji";
+}
+
+.journal-slot-title {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.journal-slot-time {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 10px;
+    -fx-padding: 0 0 0 8;
+}
+
+.journal-textarea {
+    -fx-background-color: #1a2438;
+    -fx-text-fill: #e7e5e4;
+    -fx-font-family: "Georgia", serif;
+    -fx-font-size: 14px;
+    -fx-border-color: #374151;
+    -fx-border-width: 1;
+    -fx-highlight-fill: #d97706;
+    -fx-highlight-text-fill: #1f2937;
+}
+.journal-textarea .content {
+    -fx-background-color: #1a2438;
+}
+.journal-textarea .scroll-pane {
+    -fx-background-color: transparent;
+}
+.journal-textarea .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
 
 /* =========================================================
    RIGHT PANEL
    ========================================================= */
-.right-panel { -fx-background-color: transparent; }
+.right-panel {
+    -fx-background-color: transparent;
+}
 
 .chart-panel, .tip-panel, .streak-panel {
     -fx-background-color: #f4f1ea;
@@ -221,8 +374,18 @@
     -fx-padding: 18;
 }
 
-.tip-quote { -fx-font-family: "Georgia", serif; -fx-font-style: italic; -fx-font-size: 15px; -fx-text-fill: #1c1917; -fx-line-spacing: 3; }
-.tip-attribution { -fx-text-fill: #57534e; -fx-font-size: 11px; }
+.tip-quote {
+    -fx-font-family: "Georgia", serif;
+    -fx-font-style: italic;
+    -fx-font-size: 15px;
+    -fx-text-fill: #1c1917;
+    -fx-line-spacing: 3;
+}
+
+.tip-attribution {
+    -fx-text-fill: #57534e;
+    -fx-font-size: 11px;
+}
 
 .link-button {
     -fx-background-color: transparent;
@@ -231,26 +394,68 @@
     -fx-padding: 4 0 4 0;
     -fx-cursor: hand;
 }
-.link-button:hover { -fx-underline: true; }
+.link-button:hover {
+    -fx-underline: true;
+}
 
-.streak-number { -fx-text-fill: #d97706; -fx-font-size: 56px; -fx-font-weight: bold; -fx-padding: 6 0 0 0; }
-.streak-subtitle { -fx-text-fill: #78716c; -fx-font-size: 11px; }
+.streak-number {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 56px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 0 0 0;
+}
+
+.streak-subtitle {
+    -fx-text-fill: #78716c;
+    -fx-font-size: 11px;
+}
 
 /* =========================================================
-   BAR CHART
+   PIE CHART (Screen Time by App)
    ========================================================= */
-.chart-plot-background { -fx-background-color: transparent; }
-.chart-vertical-grid-lines { -fx-stroke: #d6d3d1; -fx-stroke-dash-array: 3 3; }
-.chart-horizontal-grid-lines { -fx-stroke: transparent; }
-.chart-vertical-zero-line { -fx-stroke: transparent; }
-.chart-horizontal-zero-line { -fx-stroke: #1c1917; -fx-stroke-width: 2; }
-.axis { -fx-tick-label-fill: #1c1917; -fx-tick-label-font-size: 10px; }
-.axis .axis-label { -fx-text-fill: #1c1917; }
-.default-color0.chart-bar { -fx-bar-fill: #d97706; }
-.chart-bar { -fx-background-radius: 0; }
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-pie {
+    -fx-border-color: #f4f1ea;
+    -fx-border-width: 2;
+}
+.chart-pie:hover {
+    -fx-effect: dropshadow(gaussian, rgba(217,119,6,0.5), 10, 0, 0, 0);
+    -fx-cursor: hand;
+}
+
+.chart-pie-label {
+    -fx-fill: #1c1917;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+}
+
+.chart-pie-label-line {
+    -fx-stroke: #a8a29e;
+    -fx-fill: #a8a29e;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 5 0 0 0;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 11px;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+}
+
+.chart-legend-item-symbol {
+    -fx-background-radius: 3;
+    -fx-padding: 6;
+}
 
 /* =========================================================
-   BOTTOM STATUS BAR
+   STATUS BAR
    ========================================================= */
 .status-bar {
     -fx-background-color: #1f2937;
@@ -258,7 +463,47 @@
     -fx-border-color: #d97706 transparent transparent transparent;
     -fx-border-width: 2 0 0 0;
 }
-.status-ready { -fx-text-fill: #4ade80; -fx-font-size: 12px; -fx-font-weight: bold; }
-.status-text { -fx-text-fill: #b8b1a5; -fx-font-size: 12px; }
-.status-sep { -fx-text-fill: #4b5563; -fx-font-size: 12px; }
-.status-build { -fx-text-fill: #6b7280; -fx-font-size: 11px; }
+
+.status-ready {
+    -fx-text-fill: #4ade80;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.status-text {
+    -fx-text-fill: #b8b1a5;
+    -fx-font-size: 12px;
+}
+
+.status-sep {
+    -fx-text-fill: #4b5563;
+    -fx-font-size: 12px;
+}
+
+.status-build {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 11px;
+}
+
+/* =========================================================
+   SEARCH FIELD
+   ========================================================= */
+.search-field {
+    -fx-background-color: #1a2438;
+    -fx-text-fill: #e7e5e4;
+    -fx-prompt-text-fill: #6b7280;
+    -fx-border-color: #374151;
+    -fx-border-width: 1;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 12px;
+}
+
+/* =========================================================
+   SLEEP STATUS LINE
+   ========================================================= */
+.sleep-status {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 0 4 0;
+}

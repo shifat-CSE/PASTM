@@ -13,9 +13,10 @@ public class TimerThread extends Thread {
     private int seconds = 0;
     private final TickListener listener;
 
-    public TimerThread(String name, TickListener listener) {
+    public TimerThread(String name, int startSeconds, TickListener listener) {
         super(name);
         this.listener = listener;
+        this.seconds = startSeconds;
         setDaemon(true);
     }
 

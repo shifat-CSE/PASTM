@@ -21,10 +21,7 @@ public class StatsCalculator implements Callable<String> {
         for (Session s : snapshot) {
             count++;
             totalSec += s.getDurationSeconds();
-            if (s.getRating() > 0) {
-                rated++;
-                ratingSum += s.getRating();
-            }
+            if (s.getRating() > 0) { rated++; ratingSum += s.getRating(); }
             switch (s.getCategory()) {
                 case "Screen Time": screen += s.getDurationSeconds(); break;
                 case "Study Time":  study  += s.getDurationSeconds(); break;

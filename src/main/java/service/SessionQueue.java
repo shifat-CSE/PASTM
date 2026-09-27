@@ -12,18 +12,14 @@ public class SessionQueue {
     private volatile boolean shuttingDown = false;
 
     public synchronized void put(Session s) throws InterruptedException {
-        while (queue.size() >= CAPACITY && !shuttingDown) {
-            wait();
-        }
+        while (queue.size() >= CAPACITY && !shuttingDown) wait();
         if (shuttingDown) return;
         queue.add(s);
         notifyAll();
     }
 
     public synchronized Session take() throws InterruptedException {
-        while (queue.isEmpty() && !shuttingDown) {
-            wait();
-        }
+        while (queue.isEmpty() && !shuttingDown) wait();
         if (queue.isEmpty()) return null;
         Session s = queue.poll();
         notifyAll();

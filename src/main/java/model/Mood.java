@@ -19,9 +19,7 @@ public enum Mood {
     public String getLabel() { return label; }
 
     public static Mood fromEmoji(String e) {
-        for (Mood m : values()) {
-            if (m.emoji.equals(e)) return m;
-        }
+        for (Mood m : values()) if (m.emoji.equals(e)) return m;
         return NEUTRAL;
     }
 }

@@ -40,9 +40,7 @@ public class ThreadManager {
                     counter.add(s);
                     System.out.println("[consumer] processed: " + s.getActivity()
                             + " (" + s.getDurationFormatted() + ")");
-                    if (onConsumedUiUpdate != null) {
-                        Platform.runLater(onConsumedUiUpdate);
-                    }
+                    if (onConsumedUiUpdate != null) Platform.runLater(onConsumedUiUpdate);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -66,9 +64,7 @@ public class ThreadManager {
         calcPool.shutdown();
 
         try {
-            if (!calcPool.awaitTermination(3, TimeUnit.SECONDS)) {
-                calcPool.shutdownNow();
-            }
+            if (!calcPool.awaitTermination(3, TimeUnit.SECONDS)) calcPool.shutdownNow();
         } catch (InterruptedException e) {
             calcPool.shutdownNow();
             Thread.currentThread().interrupt();
