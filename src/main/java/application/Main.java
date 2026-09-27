@@ -16,7 +16,6 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            // Week 6: initialize SQLite schema (creates lifesync.db on first run)
             Database.initializeDatabase();
 
             FXMLLoader loader = new FXMLLoader(
@@ -46,8 +45,7 @@ public class Main extends Application {
             });
 
             primaryStage.show();
-
-            System.out.println("[Main] PASTM v2 started (Phase 3 — Weeks 1-6)");
+            System.out.println("[Main] PASTM v2 started");
         } catch (Exception e) {
             System.err.println("[Main] failed to start: " + e.getMessage());
             e.printStackTrace();

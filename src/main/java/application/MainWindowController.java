@@ -1,5 +1,6 @@
 package application;
 
+import database.DailyGoalDAO;
 import database.JournalDAO;
 import database.SessionDAO;
 import javafx.animation.PauseTransition;
@@ -9,12 +10,15 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.chart.BarChart;
 import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.util.Duration;
 import model.JournalEntry;
 import model.Mood;
@@ -31,31 +35,25 @@ import java.util.concurrent.Future;
 
 public class MainWindowController {
 
-    // ---- Header ----
     @FXML private Label dateLabel;
     @FXML private Label statusLabel;
     @FXML private Button exportBtn;
 
-    // ---- Tabs ----
     @FXML private Button tabScreen, tabStudy, tabSleep, tabJournal;
 
-    // ---- Panels ----
     @FXML private VBox mainPanel, sessionPanel, sleepPanel, journalPanel;
 
-    // ---- Session panel ----
     @FXML private FlowPane activityChipBox;
     @FXML private TextField activityField;
     @FXML private HBox moodBox;
     @FXML private Button startBtn, pauseBtn;
     @FXML private Label timerLabel;
 
-    // ---- Sleep panel ----
     @FXML private TextField sleepHoursField;
     @FXML private TextField sleepMinutesField;
     @FXML private Button sleepSaveBtn, sleepClearBtn;
     @FXML private Label sleepTodayLabel;
 
-    // ---- Table ----
     @FXML private TableView<Session> sessionTable;
     @FXML private TableColumn<Session, String> colActivity;
     @FXML private TableColumn<Session, String> colCategory;
@@ -66,23 +64,27 @@ public class MainWindowController {
     @FXML private CheckBox favoritesFilter;
     @FXML private TextField searchField;
 
-    // ---- Right panel — PIE CHART ----
+    @FXML private Label focusScoreLabel;
+    @FXML private Label focusTrendLabel;
+    @FXML private BarChart<String, Number> weekChart;
+    @FXML private ProgressBar goalStudyBar, goalScreenBar, goalSleepBar;
+    @FXML private Label goalStudyText, goalScreenText, goalSleepText;
     @FXML private PieChart screenTimePieChart;
     @FXML private Label tipLabel;
     @FXML private Label streakLabel;
 
-    // ---- Journal ----
     @FXML private DatePicker journalDatePicker;
     @FXML private TextArea journalMorning, journalNoon, journalAfternoon, journalEvening, journalNight;
     @FXML private Label journalStatus;
 
-    // ---- Data ----
     private final ObservableList<Session> allSessions = FXCollections.observableArrayList();
     private final ObservableList<Session> visibleSessions = FXCollections.observableArrayList();
     private final Map<String, List<String>> activitiesByCategory = new LinkedHashMap<>();
 
     private final SessionDAO sessionDAO = new SessionDAO();
     private final JournalDAO journalDAO = new JournalDAO();
+    private final DailyGoalDAO goalDAO = new DailyGoalDAO();
+    private final ReminderService reminderService = new ReminderService();
 
     private TimerThread sessionTimer;
     private Session currentSession;
@@ -95,9 +97,10 @@ public class MainWindowController {
     private final ThreadManager threadManager = ThreadManager.getInstance();
     private PauseTransition journalSaveDebounce;
 
-    // ============================================================
-    //  INIT
-    // ============================================================
+    private static final int DEFAULT_STUDY_MIN  = 180;
+    private static final int DEFAULT_SCREEN_MIN = 120;
+    private static final int DEFAULT_SLEEP_MIN  = 420;
+
     @FXML
     public void initialize() {
         seedActivities();
@@ -109,8 +112,7 @@ public class MainWindowController {
         setupSearch();
         loadFromDatabase();
         renderActivityChips();
-        updateStreak();
-        updateScreenTimeByAppChart();
+        refreshDashboard();
 
         activityField.textProperty().addListener((obs, oldV, newV) -> {
             if (!newV.isEmpty() && selectedActivity != null && !newV.equals(selectedActivity)) {
@@ -121,6 +123,16 @@ public class MainWindowController {
 
         threadManager.startConsumer(this::onSessionProcessed);
         refreshTable();
+
+        reminderService.start((title, message) -> showReminder(title, message));
+    }
+
+    private void refreshDashboard() {
+        updateFocusScore();
+        updateWeeklyChart();
+        updateGoalsProgress();
+        updateScreenTimeByAppChart();
+        updateStreak();
     }
 
     private void setupHeader() {
@@ -134,15 +146,10 @@ public class MainWindowController {
     }
 
     private void setupSleepFields() {
-        javafx.scene.control.TextFormatter<String> hoursFmt =
-                new javafx.scene.control.TextFormatter<>(change ->
-                        change.getControlNewText().matches("\\d{0,2}") ? change : null);
-        sleepHoursField.setTextFormatter(hoursFmt);
-
-        javafx.scene.control.TextFormatter<String> minutesFmt =
-                new javafx.scene.control.TextFormatter<>(change ->
-                        change.getControlNewText().matches("\\d{0,2}") ? change : null);
-        sleepMinutesField.setTextFormatter(minutesFmt);
+        sleepHoursField.setTextFormatter(new TextFormatter<String>(change ->
+                change.getControlNewText().matches("\\d{0,2}") ? change : null));
+        sleepMinutesField.setTextFormatter(new TextFormatter<String>(change ->
+                change.getControlNewText().matches("\\d{0,2}") ? change : null));
     }
 
     private void setupTable() {
@@ -154,9 +161,8 @@ public class MainWindowController {
         colMood.setCellValueFactory(cell ->
                 new javafx.beans.property.SimpleStringProperty(
                         cell.getValue().getMood().getEmoji()));
-        colMood.setCellFactory(column -> new TableCell<Session, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
+        colMood.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) { setText(null); setStyle(""); }
                 else {
@@ -169,9 +175,8 @@ public class MainWindowController {
         colFavorite.setCellValueFactory(cell ->
                 new javafx.beans.property.SimpleStringProperty(
                         cell.getValue().isFavorite() ? "⭐" : "☆"));
-        colFavorite.setCellFactory(column -> new TableCell<Session, String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
+        colFavorite.setCellFactory(column -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty) { setText(null); setGraphic(null); return; }
                 Session s = getTableView().getItems().get(getIndex());
@@ -188,8 +193,7 @@ public class MainWindowController {
             }
         });
 
-        sessionTable.setColumnResizePolicy(
-                TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        sessionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         sessionTable.setItems(visibleSessions);
         favoritesFilter.selectedProperty().addListener((o, a, b) -> refreshTable());
         sessionTable.setRowFactory(tv -> {
@@ -220,6 +224,273 @@ public class MainWindowController {
             b.getStyleClass().remove("mood-selected");
             if (m == selectedMood) b.getStyleClass().add("mood-selected");
         }
+    }
+
+    // ============================================================
+    //  FOCUS SCORE
+    // ============================================================
+    private void updateFocusScore() {
+        double today = computeFocusScore(LocalDate.now());
+        double yesterday = computeFocusScore(LocalDate.now().minusDays(1));
+        focusScoreLabel.setText(String.format("%.0f", today));
+        if (today > yesterday) {
+            focusTrendLabel.setText("↑");
+            focusTrendLabel.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 20px; -fx-font-weight: bold;");
+        } else if (today < yesterday) {
+            focusTrendLabel.setText("↓");
+            focusTrendLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 20px; -fx-font-weight: bold;");
+        } else {
+            focusTrendLabel.setText("→");
+            focusTrendLabel.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 20px; -fx-font-weight: bold;");
+        }
+    }
+
+    private double computeFocusScore(LocalDate date) {
+        double ratingSum = 0;
+        int ratedCount = 0;
+        int studySec = 0;
+        int screenSec = 0;
+        for (Session s : allSessions) {
+            if (!s.getDate().equals(date)) continue;
+            if ("Study Time".equals(s.getCategory())) {
+                studySec += s.getDurationSeconds();
+                if (s.getRating() > 0) { ratingSum += s.getRating(); ratedCount++; }
+            } else if ("Screen Time".equals(s.getCategory())) {
+                screenSec += s.getDurationSeconds();
+            }
+        }
+        double avgRating = ratedCount > 0 ? ratingSum / ratedCount : 0;
+        double studyMin = studySec / 60.0;
+        double screenMin = screenSec / 60.0;
+        return Math.max(0, avgRating * studyMin - screenMin * 0.5);
+    }
+
+    // ============================================================
+    //  WEEKLY CHART
+    // ============================================================
+    private void updateWeeklyChart() {
+        weekChart.getData().clear();
+        try {
+            Map<String, Map<String, Integer>> data = sessionDAO.getDailyTotalsLast7Days();
+
+            XYChart.Series<String, Number> studySeries  = new XYChart.Series<>();
+            studySeries.setName("Study");
+            XYChart.Series<String, Number> screenSeries = new XYChart.Series<>();
+            screenSeries.setName("Screen");
+            XYChart.Series<String, Number> sleepSeries  = new XYChart.Series<>();
+            sleepSeries.setName("Sleep");
+
+            DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("EEE");
+            for (int i = 6; i >= 0; i--) {
+                LocalDate d = LocalDate.now().minusDays(i);
+                String key = d.toString();
+                String label = (i == 0) ? "Today" : d.format(dayFmt);
+                Map<String, Integer> row = data.getOrDefault(key, Map.of());
+                double study  = row.getOrDefault("Study Time",  0) / 3600.0;
+                double screen = row.getOrDefault("Screen Time", 0) / 3600.0;
+                double sleep  = row.getOrDefault("Sleep Time",  0) / 3600.0;
+                studySeries.getData().add(new XYChart.Data<>(label, study));
+                screenSeries.getData().add(new XYChart.Data<>(label, screen));
+                sleepSeries.getData().add(new XYChart.Data<>(label, sleep));
+            }
+
+            weekChart.getData().addAll(studySeries, screenSeries, sleepSeries);
+
+            Platform.runLater(() -> {
+                styleSeries(studySeries,  "#d97706");
+                styleSeries(screenSeries, "#ef4444");
+                styleSeries(sleepSeries,  "#8052d2");
+            });
+        } catch (SQLException ex) {
+            System.err.println("[Chart] weekly failed: " + ex.getMessage());
+        }
+    }
+
+    private void styleSeries(XYChart.Series<String, Number> series, String color) {
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            if (data.getNode() != null) {
+                data.getNode().setStyle("-fx-bar-fill: " + color + ";");
+            }
+        }
+    }
+
+    // ============================================================
+    //  DAILY GOALS
+    // ============================================================
+    private void updateGoalsProgress() {
+        try {
+            Map<String, Integer> goals = goalDAO.getByDate(LocalDate.now());
+            int studyTarget  = goals.getOrDefault("Study Time",  DEFAULT_STUDY_MIN);
+            int screenTarget = goals.getOrDefault("Screen Time", DEFAULT_SCREEN_MIN);
+            int sleepTarget  = goals.getOrDefault("Sleep Time",  DEFAULT_SLEEP_MIN);
+
+            int studyActual = 0, screenActual = 0, sleepActual = 0;
+            LocalDate today = LocalDate.now();
+            for (Session s : allSessions) {
+                if (!s.getDate().equals(today)) continue;
+                switch (s.getCategory()) {
+                    case "Study Time":  studyActual  += s.getDurationSeconds(); break;
+                    case "Screen Time": screenActual += s.getDurationSeconds(); break;
+                    case "Sleep Time":  sleepActual  += s.getDurationSeconds(); break;
+                }
+            }
+            applyGoal(goalStudyBar,  goalStudyText,  studyActual,  studyTarget, false);
+            applyGoal(goalScreenBar, goalScreenText, screenActual, screenTarget, true);
+            applyGoal(goalSleepBar,  goalSleepText,  sleepActual,  sleepTarget, false);
+        } catch (SQLException ex) {
+            System.err.println("[Goals] load failed: " + ex.getMessage());
+        }
+    }
+
+    private void applyGoal(ProgressBar bar, Label label, int currentSec, int targetMin, boolean isMaxGoal) {
+        int currentMin = currentSec / 60;
+        double ratio = targetMin > 0 ? (double) currentMin / targetMin : 0;
+        bar.setProgress(Math.min(1.0, ratio));
+        label.setText(formatMinutes(currentMin) + " / " + formatMinutes(targetMin));
+
+        bar.getStyleClass().removeAll("goal-ok", "goal-warn", "goal-bad");
+        if (isMaxGoal) {
+            if (ratio >= 1.0) bar.getStyleClass().add("goal-bad");
+            else if (ratio >= 0.8) bar.getStyleClass().add("goal-warn");
+            else bar.getStyleClass().add("goal-ok");
+        } else {
+            if (ratio >= 1.0) bar.getStyleClass().add("goal-ok");
+            else if (ratio >= 0.5) bar.getStyleClass().add("goal-warn");
+            else bar.getStyleClass().add("goal-bad");
+        }
+    }
+
+    private String formatMinutes(int min) {
+        if (min < 60) return min + "m";
+        return (min / 60) + "h " + String.format("%02d", min % 60) + "m";
+    }
+
+    @FXML
+    private void onEditGoals() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Edit Daily Goals");
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        ButtonType saveType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveType, cancelType);
+
+        VBox root = new VBox(12);
+        root.setPadding(new Insets(20));
+        root.setPrefWidth(380);
+
+        Map<String, Integer> current = Map.of();
+        try { current = goalDAO.getByDate(LocalDate.now()); } catch (SQLException ignored) {}
+
+        TextField studyF  = new TextField(String.valueOf(current.getOrDefault("Study Time",  DEFAULT_STUDY_MIN)));
+        TextField screenF = new TextField(String.valueOf(current.getOrDefault("Screen Time", DEFAULT_SCREEN_MIN)));
+        TextField sleepF  = new TextField(String.valueOf(current.getOrDefault("Sleep Time",  DEFAULT_SLEEP_MIN)));
+
+        for (TextField f : List.of(studyF, screenF, sleepF)) {
+            f.setTextFormatter(new TextFormatter<String>(change ->
+                    change.getControlNewText().matches("\\d{0,4}") ? change : null));
+        }
+
+        root.getChildren().addAll(
+                new Label("Study Goal (minutes):"), studyF,
+                new Label("Screen Limit (minutes):"), screenF,
+                new Label("Sleep Target (minutes):"), sleepF);
+
+        dialog.getDialogPane().setContent(root);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == saveType) {
+            try {
+                goalDAO.saveAll(LocalDate.now(),
+                        parseInt(studyF.getText(), DEFAULT_STUDY_MIN),
+                        parseInt(screenF.getText(), DEFAULT_SCREEN_MIN),
+                        parseInt(sleepF.getText(), DEFAULT_SLEEP_MIN));
+                updateGoalsProgress();
+                showInfo("Saved", "Daily goals updated.");
+            } catch (SQLException ex) {
+                showWarning("Save failed: " + ex.getMessage());
+            }
+        }
+    }
+
+    private int parseInt(String s, int fallback) {
+        if (s == null || s.isBlank()) return fallback;
+        try { return Integer.parseInt(s.trim()); } catch (Exception e) { return fallback; }
+    }
+
+    // ============================================================
+    //  PIE CHART
+    // ============================================================
+    private void updateScreenTimeByAppChart() {
+        Map<String, Integer> appSeconds = new LinkedHashMap<>();
+        int totalScreenSeconds = 0;
+        LocalDate today = LocalDate.now();
+        for (Session s : allSessions) {
+            if (!"Screen Time".equals(s.getCategory())) continue;
+            if (!s.getDate().equals(today)) continue;
+            appSeconds.merge(s.getActivity(), s.getDurationSeconds(), Integer::sum);
+            totalScreenSeconds += s.getDurationSeconds();
+        }
+        screenTimePieChart.getData().clear();
+        if (totalScreenSeconds == 0) {
+            PieChart.Data placeholder = new PieChart.Data("No screen time yet", 1);
+            screenTimePieChart.getData().add(placeholder);
+            Platform.runLater(() -> {
+                if (placeholder.getNode() != null)
+                    placeholder.getNode().setStyle("-fx-pie-color: #94a3b8;");
+            });
+            return;
+        }
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(appSeconds.entrySet());
+        entries.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+        for (Map.Entry<String, Integer> e : entries) {
+            double pct = e.getValue() * 100.0 / totalScreenSeconds;
+            String label = String.format("%s (%.0f%%)", e.getKey(), pct);
+            double minutes = e.getValue() / 60.0;
+            PieChart.Data slice = new PieChart.Data(label, minutes);
+            screenTimePieChart.getData().add(slice);
+            final int seconds = e.getValue();
+            final double percentFinal = pct;
+            Platform.runLater(() -> {
+                if (slice.getNode() != null) {
+                    slice.getNode().setStyle("-fx-pie-color: " + colorForApp(e.getKey()) + ";");
+                    Tooltip.install(slice.getNode(),
+                            new Tooltip(String.format("%s%n%s (%.1f%%)",
+                                    e.getKey(), fmtSec(seconds), percentFinal)));
+                }
+            });
+        }
+    }
+
+    private String colorForApp(String app) {
+        String[] palette = {"#d97706","#10b981","#3b82f6","#ef4444","#8052d2",
+                "#f59e0b","#06b6d4","#ec4899","#84cc16","#6366f1"};
+        return palette[Math.abs(app.hashCode()) % palette.length];
+    }
+
+    private String fmtSec(int s) {
+        int h = s / 3600;
+        int m = (s % 3600) / 60;
+        int sec = s % 60;
+        if (h > 0) return h + "h " + m + "m";
+        if (m > 0) return m + "m " + String.format("%02d", sec) + "s";
+        return sec + "s";
+    }
+
+    // ============================================================
+    //  STREAK
+    // ============================================================
+    private void updateStreak() {
+        try {
+            List<String> dates = sessionDAO.getAllActiveDates();
+            if (dates.isEmpty()) { streakLabel.setText("00"); return; }
+            Set<LocalDate> active = new HashSet<>();
+            for (String d : dates) active.add(LocalDate.parse(d));
+            LocalDate cursor = LocalDate.now();
+            if (!active.contains(cursor)) cursor = cursor.minusDays(1);
+            int streak = 0;
+            while (active.contains(cursor)) { streak++; cursor = cursor.minusDays(1); }
+            streakLabel.setText(String.format("%02d", streak));
+        } catch (SQLException ex) { streakLabel.setText("00"); }
     }
 
     // ============================================================
@@ -258,9 +529,7 @@ public class MainWindowController {
             journalEvening.setText(entry.getEvening());
             journalNight.setText(entry.getNight());
             journalStatus.setText("● " + entry.getTotalWords() + " words");
-        } catch (SQLException ex) {
-            journalStatus.setText("● load failed");
-        }
+        } catch (SQLException ex) { journalStatus.setText("● load failed"); }
     }
 
     private void saveJournalEntry() {
@@ -273,13 +542,11 @@ public class MainWindowController {
                     journalNight.getText());
             journalDAO.save(entry);
             journalStatus.setText("● saved  (" + entry.getTotalWords() + " words)");
-        } catch (SQLException ex) {
-            journalStatus.setText("● save failed");
-        }
+        } catch (SQLException ex) { journalStatus.setText("● save failed"); }
     }
 
     // ============================================================
-    //  OTHER SETUP
+    //  SEED / LOAD
     // ============================================================
     private void seedActivities() {
         activitiesByCategory.put("Screen Time", Arrays.asList(
@@ -304,7 +571,7 @@ public class MainWindowController {
     private void onSessionProcessed() {
         SessionCounter c = threadManager.getCounter();
         statusLabel.setText("● " + c.getTotalSessions() + " PROCESSED");
-        updateStreak();
+        refreshDashboard();
     }
 
     private void renderActivityChips() {
@@ -329,111 +596,11 @@ public class MainWindowController {
             if (node instanceof Button b) {
                 b.getStyleClass().remove("activity-selected");
                 if (b.getText().equals(selectedActivity)) {
-                    if (!b.getStyleClass().contains("activity-selected")) {
+                    if (!b.getStyleClass().contains("activity-selected"))
                         b.getStyleClass().add("activity-selected");
-                    }
                 }
             }
         }
-    }
-
-    // ============================================================
-    //  PIE CHART — Screen Time % by App
-    // ============================================================
-    private void updateScreenTimeByAppChart() {
-        // Group screen-time seconds per app
-        Map<String, Integer> appSeconds = new LinkedHashMap<>();
-        int totalScreenSeconds = 0;
-
-        for (Session s : allSessions) {
-            if (!"Screen Time".equals(s.getCategory())) continue;
-            appSeconds.merge(s.getActivity(), s.getDurationSeconds(), Integer::sum);
-            totalScreenSeconds += s.getDurationSeconds();
-        }
-
-        screenTimePieChart.getData().clear();
-
-        // Empty state
-        if (totalScreenSeconds == 0) {
-            PieChart.Data placeholder = new PieChart.Data("No screen time yet", 1);
-            screenTimePieChart.getData().add(placeholder);
-            Platform.runLater(() -> {
-                if (placeholder.getNode() != null) {
-                    placeholder.getNode().setStyle("-fx-pie-color: #94a3b8;");
-                }
-            });
-            return;
-        }
-
-        // Sort apps by duration descending
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(appSeconds.entrySet());
-        entries.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
-
-        // Add slice per app with percentage in the label
-        for (Map.Entry<String, Integer> e : entries) {
-            double pct = e.getValue() * 100.0 / totalScreenSeconds;
-            String label = String.format("%s (%.0f%%)", e.getKey(), pct);
-            double minutes = e.getValue() / 60.0;
-
-            PieChart.Data slice = new PieChart.Data(label, minutes);
-            screenTimePieChart.getData().add(slice);
-
-            // Custom color per app + tooltip
-            final int seconds = e.getValue();
-            final double percentFinal = pct;
-            Platform.runLater(() -> {
-                if (slice.getNode() != null) {
-                    slice.getNode().setStyle("-fx-pie-color: " + colorForApp(e.getKey()) + ";");
-                    Tooltip.install(slice.getNode(),
-                            new Tooltip(String.format("%s%n%s (%.1f%%)",
-                                    e.getKey(), fmtSec(seconds), percentFinal)));
-                }
-            });
-        }
-    }
-
-    /** Deterministic color per app name so the chart is consistent between runs. */
-    private String colorForApp(String app) {
-        String[] palette = {
-                "#d97706",  // amber
-                "#10b981",  // emerald
-                "#3b82f6",  // blue
-                "#ef4444",  // red
-                "#8052d2",  // purple
-                "#f59e0b",  // orange
-                "#06b6d4",  // cyan
-                "#ec4899",  // pink
-                "#84cc16",  // lime
-                "#6366f1"   // indigo
-        };
-        int hash = Math.abs(app.hashCode());
-        return palette[hash % palette.length];
-    }
-
-    private String fmtSec(int s) {
-        int h = s / 3600;
-        int m = (s % 3600) / 60;
-        int sec = s % 60;
-        if (h > 0) return h + "h " + m + "m";
-        if (m > 0) return m + "m " + String.format("%02d", sec) + "s";
-        return sec + "s";
-    }
-
-    // ============================================================
-    //  STREAK
-    // ============================================================
-    private void updateStreak() {
-        try {
-            List<String> dates = sessionDAO.getAllActiveDates();
-            if (dates.isEmpty()) { streakLabel.setText("00"); return; }
-            Set<LocalDate> active = new HashSet<>();
-            for (String d : dates) active.add(LocalDate.parse(d));
-            LocalDate cursor = LocalDate.now();
-            if (!active.contains(cursor)) cursor = cursor.minusDays(1);
-            int streak = 0;
-            while (active.contains(cursor)) { streak++; cursor = cursor.minusDays(1); }
-            streakLabel.setText(String.format("%02d", streak));
-        } catch (SQLException ex) { streakLabel.setText("00"); }
     }
 
     // ============================================================
@@ -476,9 +643,8 @@ public class MainWindowController {
     private void setActiveTab(Button active) {
         Button[] tabs = {tabScreen, tabStudy, tabSleep, tabJournal};
         for (Button b : tabs) b.getStyleClass().remove("tab-active");
-        if (!active.getStyleClass().contains("tab-active")) {
+        if (!active.getStyleClass().contains("tab-active"))
             active.getStyleClass().add("tab-active");
-        }
     }
 
     private void refreshTable() {
@@ -514,15 +680,14 @@ public class MainWindowController {
 
     private Session findTodaySleep() {
         LocalDate today = LocalDate.now();
-        for (Session s : allSessions) {
+        for (Session s : allSessions)
             if ("Sleep Time".equals(s.getCategory()) && s.getDate().equals(today)) return s;
-        }
         return null;
     }
 
     @FXML private void onSaveSleep() {
-        int hours = parseIntOr(sleepHoursField.getText(), 0);
-        int minutes = parseIntOr(sleepMinutesField.getText(), 0);
+        int hours = parseInt(sleepHoursField.getText(), 0);
+        int minutes = parseInt(sleepMinutesField.getText(), 0);
         if (hours == 0 && minutes == 0) { showWarning("Please enter a sleep duration (at least 1 minute)."); return; }
         if (minutes > 59) { showWarning("Minutes must be 0–59."); return; }
         if (hours > 24 || (hours == 24 && minutes > 0)) { showWarning("Sleep cannot exceed 24 hours."); return; }
@@ -545,8 +710,7 @@ public class MainWindowController {
             allSessions.add(sleep);
             refreshTable();
             loadSleepForToday();
-            updateStreak();
-            updateScreenTimeByAppChart();
+            refreshDashboard();
             showInfo("Saved", "Sleep logged: " + sleep.getDurationFormatted());
         } catch (SQLException ex) { showWarning("Save failed: " + ex.getMessage()); }
     }
@@ -562,17 +726,10 @@ public class MainWindowController {
                 allSessions.remove(existing);
                 refreshTable();
                 loadSleepForToday();
-                updateStreak();
-                updateScreenTimeByAppChart();
+                refreshDashboard();
                 showInfo("Cleared", "Today's sleep entry removed.");
             } catch (SQLException ex) { showWarning("Clear failed: " + ex.getMessage()); }
         }
-    }
-
-    private int parseIntOr(String text, int fallback) {
-        if (text == null || text.isBlank()) return fallback;
-        try { return Integer.parseInt(text.trim()); }
-        catch (NumberFormatException e) { return fallback; }
     }
 
     // ============================================================
@@ -594,7 +751,6 @@ public class MainWindowController {
         statusLabel.setText("● RECORDING " + activity.toUpperCase());
         activityField.setDisable(true);
         activityChipBox.setDisable(true);
-
         startTimer();
     }
 
@@ -639,8 +795,7 @@ public class MainWindowController {
             paused = false;
             resetSessionUI();
             refreshTable();
-            updateScreenTimeByAppChart();
-            updateStreak();
+            refreshDashboard();
         } else {
             paused = false;
             pauseBtn.setText("⏸ PAUSE");
@@ -670,9 +825,6 @@ public class MainWindowController {
         timerLabel.setText(String.format("%02d:%02d:%02d", h, m, s));
     }
 
-    // ============================================================
-    //  REFLECTION DIALOG
-    // ============================================================
     private boolean showReflectionDialog(Session s) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Session Complete");
@@ -682,7 +834,8 @@ public class MainWindowController {
         dialog.getDialogPane().getButtonTypes().addAll(saveType, cancelType);
 
         VBox root = new VBox(12);
-        root.setPadding(new Insets(20)); root.setPrefWidth(460);
+        root.setPadding(new Insets(20));
+        root.setPrefWidth(460);
 
         Label ratingLbl = new Label("How focused were you?");
         ratingLbl.setStyle("-fx-font-weight: bold;");
@@ -704,13 +857,15 @@ public class MainWindowController {
         helpedLbl.setStyle("-fx-font-weight: bold;");
         TextArea helpedArea = new TextArea();
         helpedArea.setPromptText("Good environment, clear goal, no phone...");
-        helpedArea.setPrefRowCount(2); helpedArea.setWrapText(true);
+        helpedArea.setPrefRowCount(2);
+        helpedArea.setWrapText(true);
 
         Label distractedLbl = new Label("⚠ What distracted or slowed you down?");
         distractedLbl.setStyle("-fx-font-weight: bold;");
         TextArea distractedArea = new TextArea();
         distractedArea.setPromptText("Notifications, unclear task, wrong time of day...");
-        distractedArea.setPrefRowCount(2); distractedArea.setWrapText(true);
+        distractedArea.setPrefRowCount(2);
+        distractedArea.setWrapText(true);
 
         root.getChildren().addAll(ratingLbl, stars, new Separator(),
                 helpedLbl, helpedArea, distractedLbl, distractedArea);
@@ -737,7 +892,8 @@ public class MainWindowController {
         dialog.getDialogPane().getButtonTypes().addAll(saveType, cancelType);
 
         VBox root = new VBox(12);
-        root.setPadding(new Insets(20)); root.setPrefWidth(460);
+        root.setPadding(new Insets(20));
+        root.setPrefWidth(460);
         HBox stars = new HBox(6);
         final int[] rating = { s.getRating() };
         Label[] starLabels = new Label[5];
@@ -752,7 +908,8 @@ public class MainWindowController {
             stars.getChildren().add(starLabels[i]);
         }
         TextArea notes = new TextArea(s.getNotes());
-        notes.setPrefRowCount(5); notes.setWrapText(true);
+        notes.setPrefRowCount(5);
+        notes.setWrapText(true);
         root.getChildren().addAll(new Label("Rating:"), stars,
                 new Label("Reflection (Helped / Distracted):"), notes);
         dialog.getDialogPane().setContent(root);
@@ -784,7 +941,8 @@ public class MainWindowController {
                         .append(padRight(s.getDurationFormatted(), 10)).append("  ")
                         .append("rating=").append(s.getRating()).append("/5");
                 if (s.isFavorite()) sb.append("  ⭐");
-                if (!s.getNotes().isEmpty()) sb.append("\n      ").append(s.getNotes().replace("\n", "\n      "));
+                if (!s.getNotes().isEmpty())
+                    sb.append("\n      ").append(s.getNotes().replace("\n", "\n      "));
                 sb.append("\n");
                 totalSec += s.getDurationSeconds();
             }
@@ -793,8 +951,7 @@ public class MainWindowController {
             String filename = "PASTM_Report_" + LocalDate.now() + ".txt";
             Files.writeString(Paths.get(filename), sb.toString());
             showInfo("Export Complete",
-                    "Saved to: " + System.getProperty("user.dir") + "\\" + filename
-                            + "\n\n" + last7.size() + " sessions · " + (totalSec / 60) + " minutes");
+                    "Saved to: " + System.getProperty("user.dir") + "\\" + filename);
         } catch (Exception ex) { showWarning("Export failed: " + ex.getMessage()); }
     }
 
@@ -823,8 +980,24 @@ public class MainWindowController {
         }, "stats-waiter").start();
     }
 
+    // ============================================================
+    //  REMINDER CALLBACK
+    // ============================================================
+    private void showReminder(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("PASTM Reminder");
+        alert.setHeaderText("⏰  " + title);
+        alert.setContentText(message);
+        alert.initModality(Modality.NONE);
+        alert.show();
+    }
+
+    // ============================================================
+    //  LIFECYCLE
+    // ============================================================
     public void stopAll() {
         if (sessionTimer != null) { sessionTimer.stopTimer(); sessionTimer = null; }
+        reminderService.shutdown();
     }
 
     private void showInfo(String title, String content) {

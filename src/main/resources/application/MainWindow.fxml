@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -186,33 +189,86 @@
                     </VBox>
                 </VBox>
 
-                <VBox spacing="15" prefWidth="340" styleClass="right-panel">
+                <!-- RIGHT PANEL -->
+                <ScrollPane fitToWidth="true" styleClass="right-panel-scroll" prefWidth="380">
+                    <VBox styleClass="right-panel" spacing="12">
 
-                    <!-- SCREEN TIME BY APP — PIE CHART -->
-                    <VBox styleClass="chart-panel" spacing="8">
-                        <Label text="▌ SCREEN TIME BY APP" styleClass="section-heading"/>
-                        <PieChart fx:id="screenTimePieChart"
-                                  prefHeight="220"
-                                  labelsVisible="true"
-                                  legendVisible="true"
-                                  startAngle="90"/>
-                    </VBox>
+                        <!-- FOCUS SCORE -->
+                        <VBox styleClass="focus-score-card" spacing="6">
+                            <Label text="▌ FOCUS SCORE" styleClass="section-heading"/>
+                            <HBox spacing="8" alignment="BASELINE_LEFT">
+                                <Label fx:id="focusScoreLabel" text="0" styleClass="focus-score-number"/>
+                                <Label fx:id="focusTrendLabel" text="→" styleClass="focus-trend"/>
+                            </HBox>
+                            <Label text="rating × study − screen" styleClass="focus-subtitle"/>
+                        </VBox>
 
-                    <VBox styleClass="tip-panel" spacing="10">
-                        <Label text="▌ DAILY TIP" styleClass="section-heading"/>
-                        <Label fx:id="tipLabel" text="&quot;Discipline equals freedom.&quot;"
-                               wrapText="true" styleClass="tip-quote"/>
-                        <Label text="— JOCKO WILLINK" styleClass="tip-attribution"/>
-                        <Region prefHeight="5"/>
-                        <Button text="[refresh]" onAction="#onRefreshTip" styleClass="link-button"/>
-                    </VBox>
+                        <!-- 7-DAY CHART -->
+                        <VBox styleClass="chart-panel" spacing="8">
+                            <Label text="▌ LAST 7 DAYS" styleClass="section-heading"/>
+                            <BarChart fx:id="weekChart" prefHeight="170" legendVisible="true"
+                                      animated="false" categoryGap="8">
+                                <xAxis><CategoryAxis/></xAxis>
+                                <yAxis><NumberAxis/></yAxis>
+                            </BarChart>
+                        </VBox>
 
-                    <VBox styleClass="streak-panel" spacing="5" alignment="CENTER_LEFT">
-                        <Label text="▌ DAY STREAK" styleClass="section-heading"/>
-                        <Label fx:id="streakLabel" text="00" styleClass="streak-number"/>
-                        <Label text="keep going" styleClass="streak-subtitle"/>
+                        <!-- DAILY GOALS -->
+                        <VBox styleClass="goals-card" spacing="10">
+                            <HBox alignment="CENTER_LEFT">
+                                <Label text="▌ DAILY GOALS" styleClass="section-heading"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="Edit" onAction="#onEditGoals" styleClass="link-button"/>
+                            </HBox>
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="📚" styleClass="goal-icon"/>
+                                <Label text="Study" styleClass="goal-name"/>
+                                <ProgressBar fx:id="goalStudyBar" progress="0" prefWidth="120" styleClass="goal-progress"/>
+                                <Label fx:id="goalStudyText" text="0m / 0m" styleClass="goal-text"/>
+                            </HBox>
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="📱" styleClass="goal-icon"/>
+                                <Label text="Screen" styleClass="goal-name"/>
+                                <ProgressBar fx:id="goalScreenBar" progress="0" prefWidth="120" styleClass="goal-progress"/>
+                                <Label fx:id="goalScreenText" text="0m / 0m" styleClass="goal-text"/>
+                            </HBox>
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="🌙" styleClass="goal-icon"/>
+                                <Label text="Sleep" styleClass="goal-name"/>
+                                <ProgressBar fx:id="goalSleepBar" progress="0" prefWidth="120" styleClass="goal-progress"/>
+                                <Label fx:id="goalSleepText" text="0m / 0m" styleClass="goal-text"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- SCREEN TIME BY APP -->
+                        <VBox styleClass="chart-panel" spacing="8">
+                            <Label text="▌ SCREEN TIME BY APP" styleClass="section-heading"/>
+                            <PieChart fx:id="screenTimePieChart"
+                                      prefHeight="200"
+                                      labelsVisible="true"
+                                      legendVisible="true"
+                                      startAngle="90"/>
+                        </VBox>
+
+                        <!-- DAILY TIP -->
+                        <VBox styleClass="tip-panel" spacing="10">
+                            <Label text="▌ DAILY TIP" styleClass="section-heading"/>
+                            <Label fx:id="tipLabel" text="&quot;Discipline equals freedom.&quot;"
+                                   wrapText="true" styleClass="tip-quote"/>
+                            <Label text="— JOCKO WILLINK" styleClass="tip-attribution"/>
+                            <Region prefHeight="5"/>
+                            <Button text="[refresh]" onAction="#onRefreshTip" styleClass="link-button"/>
+                        </VBox>
+
+                        <!-- DAY STREAK -->
+                        <VBox styleClass="streak-panel" spacing="5" alignment="CENTER_LEFT">
+                            <Label text="▌ DAY STREAK" styleClass="section-heading"/>
+                            <Label fx:id="streakLabel" text="00" styleClass="streak-number"/>
+                            <Label text="keep going" styleClass="streak-subtitle"/>
+                        </VBox>
+
                     </VBox>
-                </VBox>
+                </ScrollPane>
             </HBox>
         </VBox>
     </center>

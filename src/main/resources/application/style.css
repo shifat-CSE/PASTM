@@ -507,3 +507,106 @@
     -fx-font-weight: bold;
     -fx-padding: 4 0 4 0;
 }
+/* =========================================================
+   NEW FEATURES — Focus Score, 7-Day Chart, Daily Goals
+   ========================================================= */
+
+/* Right panel scroll wrapper */
+.right-panel-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 0;
+    -fx-pref-width: 380;
+}
+.right-panel-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Focus Score card */
+.focus-score-card {
+    -fx-background-color: #f4f1ea;
+    -fx-border-color: #d97706;
+    -fx-border-width: 1;
+    -fx-padding: 14 18 14 18;
+}
+.focus-score-number {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 42px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+}
+.focus-trend {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+.focus-subtitle {
+    -fx-text-fill: #78716c;
+    -fx-font-size: 10px;
+    -fx-font-style: italic;
+}
+
+/* Daily Goals */
+.goals-card {
+    -fx-background-color: #f4f1ea;
+    -fx-border-color: #d97706;
+    -fx-border-width: 1;
+    -fx-padding: 14 18 14 18;
+}
+.goal-icon { -fx-font-size: 14px; }
+.goal-name {
+    -fx-text-fill: #1c1917;
+    -fx-font-size: 11px;
+    -fx-min-width: 45;
+}
+.goal-text {
+    -fx-text-fill: #57534e;
+    -fx-font-size: 10px;
+    -fx-min-width: 75;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+}
+
+/* Goal progress bar variants */
+.goal-progress {
+    -fx-pref-height: 6;
+    -fx-background-radius: 3;
+}
+.goal-progress .track {
+    -fx-background-color: #e0dcd6;
+    -fx-background-radius: 3;
+}
+.goal-progress .bar {
+    -fx-background-radius: 3;
+}
+.goal-ok .bar   { -fx-background-color: #10b981; }
+.goal-warn .bar { -fx-background-color: #f59e0b; }
+.goal-bad .bar  { -fx-background-color: #ef4444; }
+
+/* 7-Day Bar Chart */
+.chart-bar {
+    -fx-background-radius: 0;
+}
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 4 0 0 0;
+}
+.chart-legend-item {
+    -fx-text-fill: #1c1917;
+    -fx-font-size: 10px;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+}
+.chart-legend-item-symbol {
+    -fx-background-radius: 2;
+    -fx-padding: 5;
+}
+.axis {
+    -fx-tick-label-fill: #57534e;
+    -fx-tick-label-font-size: 9px;
+    -fx-tick-label-font-family: "Consolas", "Menlo", monospace;
+}
+.axis .axis-label { -fx-text-fill: #57534e; }
+.chart-vertical-grid-lines { -fx-stroke: #e0dcd6; -fx-stroke-dash-array: 2 3; }
+.chart-horizontal-grid-lines { -fx-stroke: transparent; }
+.chart-vertical-zero-line { -fx-stroke: transparent; }
+.chart-horizontal-zero-line { -fx-stroke: #1c1917; -fx-stroke-width: 1.5; }
+.chart-plot-background { -fx-background-color: transparent; }

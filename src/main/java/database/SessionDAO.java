@@ -6,7 +6,9 @@ import model.Session;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SessionDAO {
 
@@ -106,6 +108,26 @@ public class SessionDAO {
             while (rs.next()) dates.add(rs.getString("date"));
         }
         return dates;
+    }
+
+    public Map<String, Map<String, Integer>> getDailyTotalsLast7Days() throws SQLException {
+        String from = LocalDate.now().minusDays(6).toString();
+        String sql = "SELECT date, category, SUM(duration_seconds) AS total FROM sessions " +
+                "WHERE date >= ? GROUP BY date, category";
+        Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
+        try (Connection conn = Database.connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, from);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String date = rs.getString("date");
+                    String cat = rs.getString("category");
+                    int total = rs.getInt("total");
+                    result.computeIfAbsent(date, k -> new LinkedHashMap<>()).put(cat, total);
+                }
+            }
+        }
+        return result;
     }
 
     private List<Session> query(String sql) throws SQLException {

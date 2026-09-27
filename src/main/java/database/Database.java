@@ -35,10 +35,17 @@ public class Database {
                 "evening   TEXT DEFAULT '', " +
                 "night     TEXT DEFAULT '')";
 
+        String dailyGoals = "CREATE TABLE IF NOT EXISTS daily_goals (" +
+                "date TEXT NOT NULL, " +
+                "category TEXT NOT NULL, " +
+                "target_minutes INTEGER NOT NULL, " +
+                "PRIMARY KEY (date, category))";
+
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
             stmt.execute(sessions);
             stmt.execute(journal);
+            stmt.execute(dailyGoals);
 
             ensureColumn(conn, "sessions", "start_hour", "INTEGER NOT NULL DEFAULT 12");
             ensureColumn(conn, "journal", "noon",      "TEXT DEFAULT ''");
