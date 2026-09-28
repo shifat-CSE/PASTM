@@ -3,10 +3,12 @@ User: Jackson
 Generated: 2026-09-28
 ─────────────────────────────────────────
 
-2026-09-28  Facebook              Screen Time   7s          rating=3/5
-2026-09-28  Facebook              Screen Time   23s         rating=3/5
-2026-09-28  Night Sleep           Sleep Time    5h 5m       rating=4/5
+2026-09-28  Night Sleep           Sleep Time    4h 30m      rating=4/5
       Manual entry
+2026-09-28  Facebook              Screen Time   7s          rating=5/5
+      very easy
+2026-09-28  Facebook              Screen Time   23s         rating=5/5
+      very easy
 2026-09-28  Physics               Study Time    2m 12s      rating=3/5
 2026-09-28  Instagram             Screen Time   2m 30s      rating=3/5
 2026-09-28  WhatsApp              Screen Time   1m 26s      rating=3/5
@@ -28,4 +30,4 @@ Generated: 2026-09-28
       Time Loss
       
 
-Total: 746 minutes across 17 sessions
+Total: 711 minutes across 17 sessions
