@@ -1,0 +1,192 @@
+/* =========================================================
+   LIGHT THEME — loaded ON TOP of style.css
+   Overrides every surface that needs to become light.
+   Header + status bar stay dark for brand identity.
+   ========================================================= */
+
+.root {
+    -fx-background-color: #e5e7eb;
+}
+
+/* ---- TAB BAR ---- */
+.tab-bar {
+    -fx-background-color: #f4f1ea;
+    -fx-border-color: transparent transparent #1f2937 transparent;
+}
+.tab-button {
+    -fx-text-fill: #78716c;
+}
+.tab-button:hover { -fx-text-fill: #1c1917; }
+.tab-active { -fx-text-fill: #1c1917; }
+.tab-sep { -fx-text-fill: #c4b8a6; }
+
+/* ---- CONTENT AREA ---- */
+.content-area {
+    -fx-background-color: #e5e7eb;
+}
+
+/* ---- SUB LABELS become darker on light bg ---- */
+.sub-label {
+    -fx-text-fill: #57534e;
+}
+
+/* ---- SESSION PANEL ---- */
+.session-panel {
+    -fx-background-color: #ffffff;
+}
+
+.underline-input {
+    -fx-border-color: transparent transparent #1c1917 transparent;
+    -fx-text-fill: #1c1917;
+    -fx-prompt-text-fill: #a8a29e;
+}
+.underline-input:focused {
+    -fx-border-color: transparent transparent #d97706 transparent;
+}
+
+/* ---- ACTIVITY CHIPS ---- */
+.activity-chip {
+    -fx-border-color: #1c1917;
+    -fx-text-fill: #1c1917;
+}
+
+/* ---- TIMER ---- */
+.timer-label {
+    -fx-text-fill: #1c1917;
+}
+.timer-label-paused {
+    -fx-text-fill: #6b7280;
+}
+
+/* ---- PAUSE BUTTON ---- */
+.pause-button {
+    -fx-border-color: #6b7280;
+    -fx-text-fill: #6b7280;
+}
+
+/* ---- TABLE PANEL ---- */
+.table-panel {
+    -fx-background-color: #ffffff;
+}
+
+.favorites-filter { -fx-text-fill: #1c1917; }
+.favorites-filter .box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d97706;
+}
+
+.session-table {
+    -fx-background-color: #ffffff;
+    -fx-control-inner-background: #ffffff;
+    -fx-control-inner-background-alt: #f9fafb;
+}
+.session-table .column-header-background {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #d97706 transparent;
+}
+.session-table .column-header-background .filler,
+.session-table .filler {
+    -fx-background-color: #ffffff;
+}
+.session-table .column-header {
+    -fx-border-color: transparent transparent #1c1917 transparent;
+}
+.session-table .table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #e5e7eb transparent;
+}
+.session-table .table-row-cell:odd {
+    -fx-background-color: #f9fafb;
+}
+.session-table .table-row-cell:hover {
+    -fx-background-color: #fef3c7;
+}
+.session-table .table-row-cell:selected {
+    -fx-background-color: #fde68a;
+}
+.session-table .table-cell {
+    -fx-text-fill: #1c1917;
+}
+.session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty {
+    -fx-background-color: #ffffff;
+}
+
+/* ---- JOURNAL ---- */
+.journal-slot {
+    -fx-background-color: #ffffff;
+}
+.journal-textarea {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1c1917;
+    -fx-border-color: #d1d5db;
+    -fx-highlight-fill: #d97706;
+    -fx-highlight-text-fill: #ffffff;
+}
+.journal-textarea .content {
+    -fx-background-color: #ffffff;
+}
+
+/* ---- RIGHT PANEL CARDS ---- */
+.chart-panel, .tip-panel, .streak-panel, .goals-card {
+    -fx-background-color: #ffffff;
+}
+
+.dnd-card {
+    -fx-background-color: #ffffff;
+}
+.dnd-card.dnd-on {
+    -fx-background-color: #fef2f2;
+}
+.dnd-description { -fx-text-fill: #78716c; }
+
+/* ---- GOALS ---- */
+.goal-name { -fx-text-fill: #1c1917; }
+.goal-text { -fx-text-fill: #57534e; }
+.goal-progress .track { -fx-background-color: #e0dcd6; }
+
+/* ---- TIP ---- */
+.tip-quote { -fx-text-fill: #1c1917; }
+.tip-attribution { -fx-text-fill: #57534e; }
+
+/* ---- STREAK ---- */
+.streak-subtitle { -fx-text-fill: #78716c; }
+
+/* ---- CHARTS ---- */
+.chart-pie { -fx-border-color: #ffffff; }
+.chart-pie-label { -fx-fill: #1c1917; }
+.chart-pie-label-line {
+    -fx-stroke: #a8a29e;
+    -fx-fill: #a8a29e;
+}
+.axis { -fx-tick-label-fill: #57534e; }
+.axis .axis-label { -fx-text-fill: #57534e; }
+.chart-vertical-grid-lines { -fx-stroke: #e0dcd6; }
+.chart-horizontal-zero-line { -fx-stroke: #1c1917; }
+
+/* ---- SEARCH FIELD ---- */
+.search-field {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1c1917;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-border-color: #d1d5db;
+}
+
+/* ---- SLEEP HISTORY ---- */
+.sleep-history-list {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d1d5db;
+}
+.sleep-history-list .list-cell {
+    -fx-text-fill: #1c1917;
+    -fx-border-color: transparent transparent #e5e7eb transparent;
+}
+.sleep-history-list .list-cell:odd {
+    -fx-background-color: #f9fafb;
+}
+.sleep-history-list .list-cell:hover {
+    -fx-background-color: #f3f4f6;
+}
+.sleep-history-list .list-cell:selected {
+    -fx-background-color: #fde68a;
+    -fx-text-fill: #1c1917;
+}

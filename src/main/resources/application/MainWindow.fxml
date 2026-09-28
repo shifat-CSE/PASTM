@@ -21,13 +21,13 @@
             </StackPane>
             <Label text="PASTM" styleClass="logo-title"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="[Light]" onAction="#onLightModeToggle" styleClass="header-link"/>
+            <Button fx:id="themeToggleBtn" text="[Light]" onAction="#onLightModeToggle" styleClass="header-link"/>
             <Label text="|" styleClass="header-sep"/>
             <Button fx:id="exportBtn" text="[Export]" onAction="#onExport" styleClass="header-link"/>
             <Label text="|" styleClass="header-sep"/>
-            <Label fx:id="dateLabel" text="[Date: --]" styleClass="header-link"/>
+            <Label fx:id="clockLabel" text="[--:--:--]" styleClass="header-link"/>
             <Label text="|" styleClass="header-sep"/>
-            <Button text="[User]" onAction="#onUserClicked" styleClass="header-link"/>
+            <Button fx:id="userBtn" text="[User]" onAction="#onUserClicked" styleClass="header-link"/>
         </HBox>
     </top>
 
@@ -92,6 +92,31 @@
                                 <Label fx:id="sleepTodayLabel" text="No sleep logged for today"
                                        styleClass="sleep-status"/>
                             </HBox>
+
+                            <Separator/>
+                            <Label text="▌ POWER NAP TIMER" styleClass="section-heading"/>
+                            <Label text="Set a short nap duration. You'll be notified when time is up."
+                                   styleClass="sub-label"/>
+
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <Label text="Duration (minutes):" styleClass="sub-label"/>
+                                <TextField fx:id="napMinutesField" promptText="20"
+                                           prefWidth="80" styleClass="underline-input"/>
+                                <Region prefWidth="10"/>
+                                <Label fx:id="napCountdownLabel" text="--:--"
+                                       styleClass="nap-countdown"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="napCancelBtn" text="✕ Cancel"
+                                        onAction="#onCancelNap" styleClass="pause-button"
+                                        visible="false" managed="false"/>
+                                <Button fx:id="napStartBtn" text="😴  Start Nap"
+                                        onAction="#onStartNap" styleClass="start-button"/>
+                            </HBox>
+
+                            <Separator/>
+                            <Label text="▌ SLEEP HISTORY (LAST 14 DAYS)" styleClass="section-heading"/>
+                            <ListView fx:id="sleepHistoryList" prefHeight="180"
+                                      styleClass="sleep-history-list"/>
                         </VBox>
 
                         <VBox VBox.vgrow="ALWAYS" styleClass="table-panel" spacing="10">
@@ -123,6 +148,8 @@
                             <HBox spacing="15" alignment="CENTER_LEFT">
                                 <Label text="Date:" styleClass="sub-label"/>
                                 <DatePicker fx:id="journalDatePicker" prefWidth="180"/>
+                                <Button fx:id="prepareJournalBtn" text="📋  Prepare Journal"
+                                        onAction="#onPrepareJournal" styleClass="prepare-journal-button"/>
                                 <Region HBox.hgrow="ALWAYS"/>
                                 <Label fx:id="journalStatus" text="● " styleClass="sub-label"/>
                             </HBox>
@@ -189,21 +216,36 @@
                     </VBox>
                 </VBox>
 
-                <!-- RIGHT PANEL -->
                 <ScrollPane fitToWidth="true" styleClass="right-panel-scroll" prefWidth="380">
                     <VBox styleClass="right-panel" spacing="12">
 
-                        <!-- FOCUS SCORE -->
-                        <VBox styleClass="focus-score-card" spacing="6">
-                            <Label text="▌ FOCUS SCORE" styleClass="section-heading"/>
-                            <HBox spacing="8" alignment="BASELINE_LEFT">
-                                <Label fx:id="focusScoreLabel" text="0" styleClass="focus-score-number"/>
-                                <Label fx:id="focusTrendLabel" text="→" styleClass="focus-trend"/>
+                        <VBox fx:id="dndCard" styleClass="dnd-card" spacing="10">
+                            <HBox alignment="CENTER_LEFT">
+                                <Label text="▌ DO NOT DISTURB" styleClass="section-heading"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="dndStatusLabel" text="OFF" styleClass="dnd-status-off"/>
                             </HBox>
-                            <Label text="rating × study − screen" styleClass="focus-subtitle"/>
+                            <Label text="Lock everything except Study Time."
+                                   styleClass="dnd-description" wrapText="true"/>
+                            <HBox spacing="10">
+                                <Button fx:id="dndOnBtn" text="🔒  DND ON"
+                                        onAction="#onDndOn" styleClass="dnd-on-button"
+                                        maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="dndOffBtn" text="🔓  DND OFF"
+                                        onAction="#onDndOff" styleClass="dnd-off-button"
+                                        maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                            </HBox>
                         </VBox>
 
-                        <!-- 7-DAY CHART -->
+                        <VBox styleClass="chart-panel" spacing="8">
+                            <Label text="▌ SCREEN TIME BY APP" styleClass="section-heading"/>
+                            <PieChart fx:id="screenTimePieChart"
+                                      prefHeight="200"
+                                      labelsVisible="true"
+                                      legendVisible="true"
+                                      startAngle="90"/>
+                        </VBox>
+
                         <VBox styleClass="chart-panel" spacing="8">
                             <Label text="▌ LAST 7 DAYS" styleClass="section-heading"/>
                             <BarChart fx:id="weekChart" prefHeight="170" legendVisible="true"
@@ -213,7 +255,6 @@
                             </BarChart>
                         </VBox>
 
-                        <!-- DAILY GOALS -->
                         <VBox styleClass="goals-card" spacing="10">
                             <HBox alignment="CENTER_LEFT">
                                 <Label text="▌ DAILY GOALS" styleClass="section-heading"/>
@@ -240,27 +281,16 @@
                             </HBox>
                         </VBox>
 
-                        <!-- SCREEN TIME BY APP -->
-                        <VBox styleClass="chart-panel" spacing="8">
-                            <Label text="▌ SCREEN TIME BY APP" styleClass="section-heading"/>
-                            <PieChart fx:id="screenTimePieChart"
-                                      prefHeight="200"
-                                      labelsVisible="true"
-                                      legendVisible="true"
-                                      startAngle="90"/>
-                        </VBox>
-
-                        <!-- DAILY TIP -->
                         <VBox styleClass="tip-panel" spacing="10">
                             <Label text="▌ DAILY TIP" styleClass="section-heading"/>
-                            <Label fx:id="tipLabel" text="&quot;Discipline equals freedom.&quot;"
+                            <Label fx:id="tipLabel" text="&quot;Loading...&quot;"
                                    wrapText="true" styleClass="tip-quote"/>
-                            <Label text="— JOCKO WILLINK" styleClass="tip-attribution"/>
+                            <Label fx:id="tipAttributionLabel" text="— "
+                                   styleClass="tip-attribution"/>
                             <Region prefHeight="5"/>
                             <Button text="[refresh]" onAction="#onRefreshTip" styleClass="link-button"/>
                         </VBox>
 
-                        <!-- DAY STREAK -->
                         <VBox styleClass="streak-panel" spacing="5" alignment="CENTER_LEFT">
                             <Label text="▌ DAY STREAK" styleClass="section-heading"/>
                             <Label fx:id="streakLabel" text="00" styleClass="streak-number"/>
@@ -276,12 +306,13 @@
     <bottom>
         <HBox styleClass="status-bar" alignment="CENTER_LEFT" spacing="14">
             <Label fx:id="statusLabel" text="● READY" styleClass="status-ready"/>
+            <Label fx:id="dndStatusBarLabel" text="" styleClass="status-dnd" visible="false" managed="false"/>
             <Label text="|" styleClass="status-sep"/>
             <Label text="double-click a row to edit" styleClass="status-text"/>
             <Label text="|" styleClass="status-sep"/>
             <Label text="favorite via ★" styleClass="status-text"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="[build 2.0.1]" styleClass="status-build"/>
+            <Label text="[build 2.0.2]" styleClass="status-build"/>
         </HBox>
     </bottom>
 </BorderPane>

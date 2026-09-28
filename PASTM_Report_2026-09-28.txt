@@ -1,7 +1,18 @@
 PASTM Weekly Report
-Generated: 2026-09-27
+User: Jackson
+Generated: 2026-09-28
 ─────────────────────────────────────────
 
+2026-09-28  Facebook              Screen Time   7s          rating=3/5
+2026-09-28  Facebook              Screen Time   23s         rating=3/5
+2026-09-28  Night Sleep           Sleep Time    5h 5m       rating=4/5
+      Manual entry
+2026-09-28  Physics               Study Time    2m 12s      rating=3/5
+2026-09-28  Instagram             Screen Time   2m 30s      rating=3/5
+2026-09-28  WhatsApp              Screen Time   1m 26s      rating=3/5
+2026-09-28  YouTube               Screen Time   30s         rating=3/5
+2026-09-27  Algorithm             Study Time    1m 13s      rating=4/5
+      ⚠ Distracted: the topics
 2026-09-27  Java                  Study Time    1m 01s      rating=2/5
       ⚠ Distracted: phone
 2026-09-27  Night Sleep           Sleep Time    7h 10m      rating=4/5
@@ -17,4 +28,4 @@ Generated: 2026-09-27
       Time Loss
       
 
-Total: 433 minutes across 9 sessions
+Total: 746 minutes across 17 sessions

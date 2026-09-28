@@ -1,16 +1,16 @@
 /* =========================================================
-   GLOBAL
+   GLOBAL — DARK THEME
    ========================================================= */
 .root {
     -fx-font-family: "Consolas", "Menlo", "Courier New", monospace;
-    -fx-background-color: #1f2937;
+    -fx-background-color: #0f172a;
 }
 
 /* =========================================================
    HEADER BAR
    ========================================================= */
 .header-bar {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #0f172a;
     -fx-padding: 12 22 12 22;
     -fx-border-color: transparent transparent #d97706 transparent;
     -fx-border-width: 0 0 2 0;
@@ -49,7 +49,7 @@
 .header-link:hover { -fx-text-fill: #d97706; }
 
 .header-sep {
-    -fx-text-fill: #4b5563;
+    -fx-text-fill: #475569;
     -fx-font-size: 13px;
 }
 
@@ -57,15 +57,15 @@
    TAB BAR
    ========================================================= */
 .tab-bar {
-    -fx-background-color: #f4f1ea;
+    -fx-background-color: #1e293b;
     -fx-padding: 6 22 6 22;
-    -fx-border-color: transparent transparent #1f2937 transparent;
+    -fx-border-color: transparent transparent #0f172a transparent;
     -fx-border-width: 0 0 1 0;
 }
 
 .tab-button {
     -fx-background-color: transparent;
-    -fx-text-fill: #78716c;
+    -fx-text-fill: #94a3b8;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-padding: 10 16 10 16;
@@ -73,16 +73,20 @@
     -fx-border-color: transparent;
     -fx-cursor: hand;
 }
-.tab-button:hover { -fx-text-fill: #1c1917; }
+.tab-button:hover { -fx-text-fill: #f1f5f9; }
+.tab-button:disabled {
+    -fx-opacity: 0.35;
+    -fx-cursor: default;
+}
 
 .tab-active {
-    -fx-text-fill: #1c1917;
+    -fx-text-fill: #f1f5f9;
     -fx-border-color: transparent transparent #d97706 transparent;
     -fx-border-width: 0 0 4 0;
 }
 
 .tab-sep {
-    -fx-text-fill: #c4b8a6;
+    -fx-text-fill: #475569;
     -fx-font-size: 16px;
     -fx-padding: 0 4 0 4;
 }
@@ -91,7 +95,7 @@
    CONTENT AREA
    ========================================================= */
 .content-area {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #0f172a;
     -fx-padding: 14 22 14 22;
 }
 
@@ -105,7 +109,7 @@
 }
 
 .sub-label {
-    -fx-text-fill: #78716c;
+    -fx-text-fill: #94a3b8;
     -fx-font-size: 11px;
 }
 
@@ -113,7 +117,7 @@
    SESSION PANEL
    ========================================================= */
 .session-panel {
-    -fx-background-color: #f4f1ea;
+    -fx-background-color: #1e293b;
     -fx-border-color: #d97706;
     -fx-border-width: 1;
     -fx-padding: 16;
@@ -121,10 +125,10 @@
 
 .underline-input {
     -fx-background-color: transparent;
-    -fx-border-color: transparent transparent #1c1917 transparent;
+    -fx-border-color: transparent transparent #334155 transparent;
     -fx-border-width: 0 0 1 0;
-    -fx-text-fill: #1c1917;
-    -fx-prompt-text-fill: #a8a29e;
+    -fx-text-fill: #f1f5f9;
+    -fx-prompt-text-fill: #64748b;
     -fx-font-size: 14px;
     -fx-padding: 6 4 6 4;
 }
@@ -137,9 +141,9 @@
    ========================================================= */
 .activity-chip {
     -fx-background-color: transparent;
-    -fx-border-color: #1c1917;
+    -fx-border-color: #334155;
     -fx-border-width: 1;
-    -fx-text-fill: #1c1917;
+    -fx-text-fill: #cbd5e1;
     -fx-font-size: 13px;
     -fx-padding: 8 16 8 16;
     -fx-cursor: hand;
@@ -180,10 +184,13 @@
    TIMER + BUTTONS
    ========================================================= */
 .timer-label {
-    -fx-text-fill: #1c1917;
+    -fx-text-fill: #f1f5f9;
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-padding: 0 12 0 12;
+}
+.timer-label-paused {
+    -fx-text-fill: #94a3b8;
 }
 
 .start-button {
@@ -212,35 +219,46 @@
 
 .pause-button {
     -fx-background-color: transparent;
-    -fx-border-color: #6b7280;
+    -fx-border-color: #64748b;
     -fx-border-width: 2;
-    -fx-text-fill: #6b7280;
+    -fx-text-fill: #94a3b8;
     -fx-font-weight: bold;
     -fx-font-size: 12px;
     -fx-padding: 10 16 10 16;
     -fx-cursor: hand;
 }
 .pause-button:hover {
-    -fx-background-color: #6b7280;
+    -fx-background-color: #64748b;
     -fx-text-fill: #f4f1ea;
+}
+
+/* =========================================================
+   NAP COUNTDOWN
+   ========================================================= */
+.nap-countdown {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-padding: 0 15 0 15;
 }
 
 /* =========================================================
    TABLE PANEL
    ========================================================= */
 .table-panel {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #1e293b;
     -fx-border-color: #d97706;
     -fx-border-width: 1;
     -fx-padding: 16;
 }
 
 .favorites-filter {
-    -fx-text-fill: #d97706;
+    -fx-text-fill: #cbd5e1;
     -fx-font-size: 12px;
 }
 .favorites-filter .box {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #0f172a;
     -fx-border-color: #d97706;
 }
 .favorites-filter:selected .mark {
@@ -248,24 +266,24 @@
 }
 
 .session-table {
-    -fx-background-color: #1f2937;
-    -fx-control-inner-background: #1f2937;
-    -fx-control-inner-background-alt: #2d3748;
+    -fx-background-color: #1e293b;
+    -fx-control-inner-background: #1e293b;
+    -fx-control-inner-background-alt: #273449;
     -fx-table-cell-border-color: transparent;
     -fx-border-color: transparent;
 }
 .session-table .column-header-background {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #1e293b;
     -fx-border-color: transparent transparent #d97706 transparent;
     -fx-border-width: 0 0 1 0;
 }
 .session-table .column-header-background .filler,
 .session-table .filler {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #1e293b;
 }
 .session-table .column-header {
     -fx-background-color: transparent;
-    -fx-border-color: transparent transparent #1c1917 transparent;
+    -fx-border-color: transparent transparent #475569 transparent;
     -fx-border-width: 0 0 2 0;
     -fx-size: 40;
 }
@@ -275,38 +293,38 @@
     -fx-font-weight: bold;
 }
 .session-table .table-row-cell {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #1e293b;
     -fx-cell-size: 42;
-    -fx-border-color: transparent transparent #374151 transparent;
+    -fx-border-color: transparent transparent #334155 transparent;
     -fx-border-width: 0 0 1 0;
 }
 .session-table .table-row-cell:odd {
-    -fx-background-color: #2d3748;
+    -fx-background-color: #273449;
 }
 .session-table .table-row-cell:hover {
-    -fx-background-color: #374151;
+    -fx-background-color: #334155;
 }
 .session-table .table-row-cell:selected {
     -fx-background-color: #422006;
 }
 .session-table .table-cell {
-    -fx-text-fill: #e7e5e4;
+    -fx-text-fill: #e2e8f0;
     -fx-font-size: 13px;
     -fx-padding: 0 12 0 12;
 }
 .session-table .placeholder .label {
-    -fx-text-fill: #6b7280;
+    -fx-text-fill: #64748b;
     -fx-font-style: italic;
 }
 .session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #1e293b;
 }
 .session-table .virtual-flow .clipped-container .sheet .table-row-cell:empty .table-cell {
     -fx-border-color: transparent;
 }
 
 /* =========================================================
-   JOURNAL — 5 time slots
+   JOURNAL
    ========================================================= */
 .journal-scroll {
     -fx-background-color: transparent;
@@ -317,7 +335,7 @@
 }
 
 .journal-slot {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #1e293b;
     -fx-border-color: #d97706;
     -fx-border-width: 1;
     -fx-padding: 12 16 12 16;
@@ -335,23 +353,23 @@
 }
 
 .journal-slot-time {
-    -fx-text-fill: #6b7280;
+    -fx-text-fill: #64748b;
     -fx-font-size: 10px;
     -fx-padding: 0 0 0 8;
 }
 
 .journal-textarea {
-    -fx-background-color: #1a2438;
-    -fx-text-fill: #e7e5e4;
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #e2e8f0;
     -fx-font-family: "Georgia", serif;
     -fx-font-size: 14px;
-    -fx-border-color: #374151;
+    -fx-border-color: #334155;
     -fx-border-width: 1;
     -fx-highlight-fill: #d97706;
-    -fx-highlight-text-fill: #1f2937;
+    -fx-highlight-text-fill: #0f172a;
 }
 .journal-textarea .content {
-    -fx-background-color: #1a2438;
+    -fx-background-color: #0f172a;
 }
 .journal-textarea .scroll-pane {
     -fx-background-color: transparent;
@@ -367,23 +385,150 @@
     -fx-background-color: transparent;
 }
 
-.chart-panel, .tip-panel, .streak-panel {
-    -fx-background-color: #f4f1ea;
+.right-panel-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 12 0 0;
+    -fx-pref-width: 380;
+}
+.right-panel-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.chart-panel, .tip-panel, .streak-panel, .goals-card {
+    -fx-background-color: #1e293b;
     -fx-border-color: #d97706;
     -fx-border-width: 1;
     -fx-padding: 18;
 }
 
+/* =========================================================
+   DO NOT DISTURB (DND)
+   ========================================================= */
+.dnd-card {
+    -fx-background-color: #1e293b;
+    -fx-border-width: 2;
+    -fx-padding: 14 18 14 18;
+}
+.dnd-card.dnd-off {
+    -fx-border-color: #10b981;
+}
+.dnd-card.dnd-on {
+    -fx-border-color: #ef4444;
+    -fx-background-color: #2a1618;
+}
+
+.dnd-description {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}
+
+.dnd-status-off {
+    -fx-text-fill: #10b981;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+.dnd-status-on {
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.dnd-on-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #ef4444;
+    -fx-border-width: 2;
+    -fx-text-fill: #ef4444;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+}
+.dnd-on-button:hover {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: #ffffff;
+}
+.dnd-on-button:disabled {
+    -fx-opacity: 0.4;
+    -fx-cursor: default;
+}
+
+.dnd-off-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #10b981;
+    -fx-border-width: 2;
+    -fx-text-fill: #10b981;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+}
+.dnd-off-button:hover {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+}
+.dnd-off-button:disabled {
+    -fx-opacity: 0.4;
+    -fx-cursor: default;
+}
+
+.status-dnd {
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-background-color: #2a1618;
+    -fx-padding: 2 10 2 10;
+    -fx-background-radius: 10;
+    -fx-border-color: #ef4444;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+}
+
+/* =========================================================
+   DAILY GOALS
+   ========================================================= */
+.goal-icon { -fx-font-size: 14px; }
+.goal-name {
+    -fx-text-fill: #f1f5f9;
+    -fx-font-size: 11px;
+    -fx-min-width: 45;
+}
+.goal-text {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 10px;
+    -fx-min-width: 75;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+}
+
+.goal-progress {
+    -fx-pref-height: 6;
+    -fx-background-radius: 3;
+}
+.goal-progress .track {
+    -fx-background-color: #334155;
+    -fx-background-radius: 3;
+}
+.goal-progress .bar {
+    -fx-background-radius: 3;
+}
+.goal-ok .bar   { -fx-background-color: #10b981; }
+.goal-warn .bar { -fx-background-color: #f59e0b; }
+.goal-bad .bar  { -fx-background-color: #ef4444; }
+
+/* =========================================================
+   TIP + STREAK
+   ========================================================= */
 .tip-quote {
     -fx-font-family: "Georgia", serif;
     -fx-font-style: italic;
     -fx-font-size: 15px;
-    -fx-text-fill: #1c1917;
+    -fx-text-fill: #e2e8f0;
     -fx-line-spacing: 3;
 }
 
 .tip-attribution {
-    -fx-text-fill: #57534e;
+    -fx-text-fill: #94a3b8;
     -fx-font-size: 11px;
 }
 
@@ -406,19 +551,19 @@
 }
 
 .streak-subtitle {
-    -fx-text-fill: #78716c;
+    -fx-text-fill: #94a3b8;
     -fx-font-size: 11px;
 }
 
 /* =========================================================
-   PIE CHART (Screen Time by App)
+   PIE CHART
    ========================================================= */
 .chart-plot-background {
     -fx-background-color: transparent;
 }
 
 .chart-pie {
-    -fx-border-color: #f4f1ea;
+    -fx-border-color: #1e293b;
     -fx-border-width: 2;
 }
 .chart-pie:hover {
@@ -427,15 +572,15 @@
 }
 
 .chart-pie-label {
-    -fx-fill: #1c1917;
+    -fx-fill: #f1f5f9;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
     -fx-font-family: "Consolas", "Menlo", monospace;
 }
 
 .chart-pie-label-line {
-    -fx-stroke: #a8a29e;
-    -fx-fill: #a8a29e;
+    -fx-stroke: #64748b;
+    -fx-fill: #64748b;
 }
 
 .chart-legend {
@@ -455,10 +600,27 @@
 }
 
 /* =========================================================
+   7-DAY BAR CHART
+   ========================================================= */
+.chart-bar {
+    -fx-background-radius: 0;
+}
+.axis {
+    -fx-tick-label-fill: #94a3b8;
+    -fx-tick-label-font-size: 9px;
+    -fx-tick-label-font-family: "Consolas", "Menlo", monospace;
+}
+.axis .axis-label { -fx-text-fill: #94a3b8; }
+.chart-vertical-grid-lines { -fx-stroke: #334155; -fx-stroke-dash-array: 2 3; }
+.chart-horizontal-grid-lines { -fx-stroke: transparent; }
+.chart-vertical-zero-line { -fx-stroke: transparent; }
+.chart-horizontal-zero-line { -fx-stroke: #475569; -fx-stroke-width: 1.5; }
+
+/* =========================================================
    STATUS BAR
    ========================================================= */
 .status-bar {
-    -fx-background-color: #1f2937;
+    -fx-background-color: #0f172a;
     -fx-padding: 10 22 10 22;
     -fx-border-color: #d97706 transparent transparent transparent;
     -fx-border-width: 2 0 0 0;
@@ -471,17 +633,17 @@
 }
 
 .status-text {
-    -fx-text-fill: #b8b1a5;
+    -fx-text-fill: #94a3b8;
     -fx-font-size: 12px;
 }
 
 .status-sep {
-    -fx-text-fill: #4b5563;
+    -fx-text-fill: #475569;
     -fx-font-size: 12px;
 }
 
 .status-build {
-    -fx-text-fill: #6b7280;
+    -fx-text-fill: #64748b;
     -fx-font-size: 11px;
 }
 
@@ -489,10 +651,10 @@
    SEARCH FIELD
    ========================================================= */
 .search-field {
-    -fx-background-color: #1a2438;
-    -fx-text-fill: #e7e5e4;
-    -fx-prompt-text-fill: #6b7280;
-    -fx-border-color: #374151;
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #f1f5f9;
+    -fx-prompt-text-fill: #64748b;
+    -fx-border-color: #334155;
     -fx-border-width: 1;
     -fx-padding: 6 10 6 10;
     -fx-font-size: 12px;
@@ -507,106 +669,48 @@
     -fx-font-weight: bold;
     -fx-padding: 4 0 4 0;
 }
+
 /* =========================================================
-   NEW FEATURES — Focus Score, 7-Day Chart, Daily Goals
+   SLEEP HISTORY LIST
    ========================================================= */
-
-/* Right panel scroll wrapper */
-.right-panel-scroll {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-padding: 0 12 0 0;
-    -fx-pref-width: 380;
-}
-.right-panel-scroll > .viewport {
-    -fx-background-color: transparent;
-}
-
-/* Focus Score card */
-.focus-score-card {
-    -fx-background-color: #f4f1ea;
-    -fx-border-color: #d97706;
+.sleep-history-list {
+    -fx-background-color: #0f172a;
+    -fx-border-color: #334155;
     -fx-border-width: 1;
-    -fx-padding: 14 18 14 18;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 12px;
 }
-.focus-score-number {
-    -fx-text-fill: #d97706;
-    -fx-font-size: 42px;
+.sleep-history-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e2e8f0;
+    -fx-padding: 8 12 8 12;
+    -fx-border-color: transparent transparent #273449 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.sleep-history-list .list-cell:odd {
+    -fx-background-color: #131d2e;
+}
+.sleep-history-list .list-cell:hover {
+    -fx-background-color: #273449;
+}
+.sleep-history-list .list-cell:selected {
+    -fx-background-color: #422006;
+    -fx-text-fill: #f4f1ea;
+}
+
+/* =========================================================
+   PREPARE JOURNAL BUTTON
+   ========================================================= */
+.prepare-journal-button {
+    -fx-background-color: #d97706;
+    -fx-text-fill: #f4f1ea;
     -fx-font-weight: bold;
     -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 12px;
+    -fx-padding: 8 16 8 16;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
 }
-.focus-trend {
-    -fx-text-fill: #6b7280;
-    -fx-font-size: 20px;
-    -fx-font-weight: bold;
+.prepare-journal-button:hover {
+    -fx-background-color: #b45309;
 }
-.focus-subtitle {
-    -fx-text-fill: #78716c;
-    -fx-font-size: 10px;
-    -fx-font-style: italic;
-}
-
-/* Daily Goals */
-.goals-card {
-    -fx-background-color: #f4f1ea;
-    -fx-border-color: #d97706;
-    -fx-border-width: 1;
-    -fx-padding: 14 18 14 18;
-}
-.goal-icon { -fx-font-size: 14px; }
-.goal-name {
-    -fx-text-fill: #1c1917;
-    -fx-font-size: 11px;
-    -fx-min-width: 45;
-}
-.goal-text {
-    -fx-text-fill: #57534e;
-    -fx-font-size: 10px;
-    -fx-min-width: 75;
-    -fx-font-family: "Consolas", "Menlo", monospace;
-}
-
-/* Goal progress bar variants */
-.goal-progress {
-    -fx-pref-height: 6;
-    -fx-background-radius: 3;
-}
-.goal-progress .track {
-    -fx-background-color: #e0dcd6;
-    -fx-background-radius: 3;
-}
-.goal-progress .bar {
-    -fx-background-radius: 3;
-}
-.goal-ok .bar   { -fx-background-color: #10b981; }
-.goal-warn .bar { -fx-background-color: #f59e0b; }
-.goal-bad .bar  { -fx-background-color: #ef4444; }
-
-/* 7-Day Bar Chart */
-.chart-bar {
-    -fx-background-radius: 0;
-}
-.chart-legend {
-    -fx-background-color: transparent;
-    -fx-padding: 4 0 0 0;
-}
-.chart-legend-item {
-    -fx-text-fill: #1c1917;
-    -fx-font-size: 10px;
-    -fx-font-family: "Consolas", "Menlo", monospace;
-}
-.chart-legend-item-symbol {
-    -fx-background-radius: 2;
-    -fx-padding: 5;
-}
-.axis {
-    -fx-tick-label-fill: #57534e;
-    -fx-tick-label-font-size: 9px;
-    -fx-tick-label-font-family: "Consolas", "Menlo", monospace;
-}
-.axis .axis-label { -fx-text-fill: #57534e; }
-.chart-vertical-grid-lines { -fx-stroke: #e0dcd6; -fx-stroke-dash-array: 2 3; }
-.chart-horizontal-grid-lines { -fx-stroke: transparent; }
-.chart-vertical-zero-line { -fx-stroke: transparent; }
-.chart-horizontal-zero-line { -fx-stroke: #1c1917; -fx-stroke-width: 1.5; }
-.chart-plot-background { -fx-background-color: transparent; }

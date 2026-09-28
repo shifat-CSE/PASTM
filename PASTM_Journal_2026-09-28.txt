@@ -1,0 +1,29 @@
+═══════════════════════════════════════════════════════
+              PASTM  —  DAILY JOURNAL REPORT
+═══════════════════════════════════════════════════════
+  Date: Monday, 28 September 2026
+  Generated: 2026-09-28
+
+─── TIME BUDGET ───────────────────────────────────────
+  Study Time:  2m 12s
+  Screen Time: 4m 26s
+  Sleep Time:  5h 5m
+
+─── STUDY TIME ─────────────────────────────────
+  • Physics               2m 12s      rating=3/5
+
+─── SCREEN TIME ─────────────────────────────────
+  • Instagram             2m 30s      rating=3/5
+  • WhatsApp              1m 26s      rating=3/5
+  • YouTube               30s         rating=3/5
+
+─── SLEEP TIME ─────────────────────────────────
+  • Night Sleep           5h 5m       rating=4/5
+        Manual entry
+
+─── JOURNAL REFLECTIONS ────────────────────────────────
+  (No reflections recorded.)
+
+═══════════════════════════════════════════════════════
+  End of report — 5 sessions logged.
+═══════════════════════════════════════════════════════

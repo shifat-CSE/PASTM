@@ -3,8 +3,13 @@ package application;
 import database.DailyGoalDAO;
 import database.JournalDAO;
 import database.SessionDAO;
+import database.UserProfileDAO;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -23,21 +28,40 @@ import javafx.util.Duration;
 import model.JournalEntry;
 import model.Mood;
 import model.Session;
-import service.*;
+import model.Tip;
+import model.UserProfile;
+import service.ReminderService;
+import service.SessionCounter;
+import service.StatsCalculator;
+import service.ThreadManager;
+import service.TimerThread;
+import service.TipService;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 public class MainWindowController {
 
-    @FXML private Label dateLabel;
+    @FXML private Label clockLabel;
     @FXML private Label statusLabel;
+    @FXML private Label dndStatusBarLabel;
     @FXML private Button exportBtn;
+    @FXML private Button themeToggleBtn;
+    @FXML private Button userBtn;
 
     @FXML private Button tabScreen, tabStudy, tabSleep, tabJournal;
 
@@ -49,10 +73,19 @@ public class MainWindowController {
     @FXML private Button startBtn, pauseBtn;
     @FXML private Label timerLabel;
 
+    // Sleep
     @FXML private TextField sleepHoursField;
     @FXML private TextField sleepMinutesField;
     @FXML private Button sleepSaveBtn, sleepClearBtn;
     @FXML private Label sleepTodayLabel;
+
+    // Nap
+    @FXML private TextField napMinutesField;
+    @FXML private Label napCountdownLabel;
+    @FXML private Button napStartBtn, napCancelBtn;
+
+    // Sleep history
+    @FXML private ListView<String> sleepHistoryList;
 
     @FXML private TableView<Session> sessionTable;
     @FXML private TableColumn<Session, String> colActivity;
@@ -64,18 +97,22 @@ public class MainWindowController {
     @FXML private CheckBox favoritesFilter;
     @FXML private TextField searchField;
 
-    @FXML private Label focusScoreLabel;
-    @FXML private Label focusTrendLabel;
+    @FXML private VBox dndCard;
+    @FXML private Label dndStatusLabel;
+    @FXML private Button dndOnBtn, dndOffBtn;
+
     @FXML private BarChart<String, Number> weekChart;
     @FXML private ProgressBar goalStudyBar, goalScreenBar, goalSleepBar;
     @FXML private Label goalStudyText, goalScreenText, goalSleepText;
     @FXML private PieChart screenTimePieChart;
     @FXML private Label tipLabel;
+    @FXML private Label tipAttributionLabel;
     @FXML private Label streakLabel;
 
     @FXML private DatePicker journalDatePicker;
     @FXML private TextArea journalMorning, journalNoon, journalAfternoon, journalEvening, journalNight;
     @FXML private Label journalStatus;
+    @FXML private Button prepareJournalBtn;
 
     private final ObservableList<Session> allSessions = FXCollections.observableArrayList();
     private final ObservableList<Session> visibleSessions = FXCollections.observableArrayList();
@@ -84,7 +121,13 @@ public class MainWindowController {
     private final SessionDAO sessionDAO = new SessionDAO();
     private final JournalDAO journalDAO = new JournalDAO();
     private final DailyGoalDAO goalDAO = new DailyGoalDAO();
+    private final UserProfileDAO userProfileDAO = new UserProfileDAO();
     private final ReminderService reminderService = new ReminderService();
+    private final TipService tipService = new TipService();
+
+    private UserProfile userProfile = new UserProfile();
+
+    private Timeline clockTimeline;
 
     private TimerThread sessionTimer;
     private Session currentSession;
@@ -93,6 +136,14 @@ public class MainWindowController {
     private int elapsedSeconds = 0;
     private String activeCategory = "Screen Time";
     private boolean paused = false;
+    private boolean dndActive = false;
+
+    // Nap
+    private TimerThread napTimer;
+    private int napTargetSeconds = 0;
+    private int napElapsedSeconds = 0;
+    private boolean napCompleted = false;
+    private boolean napRunning = false;
 
     private final ThreadManager threadManager = ThreadManager.getInstance();
     private PauseTransition journalSaveDebounce;
@@ -100,6 +151,8 @@ public class MainWindowController {
     private static final int DEFAULT_STUDY_MIN  = 180;
     private static final int DEFAULT_SCREEN_MIN = 120;
     private static final int DEFAULT_SLEEP_MIN  = 420;
+    private static final int NAP_MIN_MINUTES = 5;
+    private static final int NAP_MAX_MINUTES = 180;
 
     @FXML
     public void initialize() {
@@ -109,8 +162,10 @@ public class MainWindowController {
         setupMoodPicker();
         setupJournalTab();
         setupSleepFields();
+        setupNapFields();
         setupSearch();
         loadFromDatabase();
+        loadUserProfile();
         renderActivityChips();
         refreshDashboard();
 
@@ -123,12 +178,13 @@ public class MainWindowController {
 
         threadManager.startConsumer(this::onSessionProcessed);
         refreshTable();
+        reminderService.start(this::showReminder);
+        updateDndUi();
 
-        reminderService.start((title, message) -> showReminder(title, message));
+        loadInitialTip();
     }
 
     private void refreshDashboard() {
-        updateFocusScore();
         updateWeeklyChart();
         updateGoalsProgress();
         updateScreenTimeByAppChart();
@@ -136,8 +192,17 @@ public class MainWindowController {
     }
 
     private void setupHeader() {
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd MMM");
-        dateLabel.setText("[Date: " + LocalDate.now().format(fmt) + "]");
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+        clockLabel.setText("[" + LocalTime.now().format(fmt) + "]");
+
+        clockTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(1),
+                        e -> clockLabel.setText("[" + LocalTime.now().format(fmt) + "]"))
+        );
+        clockTimeline.setCycleCount(Animation.INDEFINITE);
+        clockTimeline.play();
+
         statusLabel.setText("● READY");
     }
 
@@ -152,6 +217,11 @@ public class MainWindowController {
                 change.getControlNewText().matches("\\d{0,2}") ? change : null));
     }
 
+    private void setupNapFields() {
+        napMinutesField.setTextFormatter(new TextFormatter<String>(change ->
+                change.getControlNewText().matches("\\d{0,3}") ? change : null));
+    }
+
     private void setupTable() {
         colActivity.setCellValueFactory(new PropertyValueFactory<>("activity"));
         colCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
@@ -159,8 +229,7 @@ public class MainWindowController {
         colRating.setCellValueFactory(new PropertyValueFactory<>("ratingDisplay"));
 
         colMood.setCellValueFactory(cell ->
-                new javafx.beans.property.SimpleStringProperty(
-                        cell.getValue().getMood().getEmoji()));
+                new SimpleStringProperty(cell.getValue().getMood().getEmoji()));
         colMood.setCellFactory(column -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -173,8 +242,7 @@ public class MainWindowController {
         });
 
         colFavorite.setCellValueFactory(cell ->
-                new javafx.beans.property.SimpleStringProperty(
-                        cell.getValue().isFavorite() ? "⭐" : "☆"));
+                new SimpleStringProperty(cell.getValue().isFavorite() ? "⭐" : "☆"));
         colFavorite.setCellFactory(column -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -227,42 +295,390 @@ public class MainWindowController {
     }
 
     // ============================================================
-    //  FOCUS SCORE
+    //  USER PROFILE
     // ============================================================
-    private void updateFocusScore() {
-        double today = computeFocusScore(LocalDate.now());
-        double yesterday = computeFocusScore(LocalDate.now().minusDays(1));
-        focusScoreLabel.setText(String.format("%.0f", today));
-        if (today > yesterday) {
-            focusTrendLabel.setText("↑");
-            focusTrendLabel.setStyle("-fx-text-fill: #4ade80; -fx-font-size: 20px; -fx-font-weight: bold;");
-        } else if (today < yesterday) {
-            focusTrendLabel.setText("↓");
-            focusTrendLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 20px; -fx-font-weight: bold;");
-        } else {
-            focusTrendLabel.setText("→");
-            focusTrendLabel.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 20px; -fx-font-weight: bold;");
+    private void loadUserProfile() {
+        try {
+            userProfile = userProfileDAO.load();
+        } catch (SQLException ex) {
+            System.err.println("[Profile] load failed: " + ex.getMessage());
+            userProfile = new UserProfile();
+        }
+        applyTheme(userProfile.getTheme());
+        refreshUserButton();
+    }
+
+    private void refreshUserButton() {
+        if (userBtn != null) userBtn.setText(userProfile.getDisplayLabel());
+    }
+
+    @FXML
+    private void onUserClicked() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Edit Profile");
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        ButtonType saveType = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveType, cancelType);
+
+        VBox root = new VBox(12);
+        root.setPadding(new Insets(20));
+        root.setPrefWidth(400);
+
+        TextField avatarF = new TextField(userProfile.getAvatar());
+        avatarF.setPrefWidth(80);
+        avatarF.setPromptText("👤");
+
+        TextField nameF  = new TextField(userProfile.getName());
+        TextField emailF = new TextField(userProfile.getEmail());
+        TextArea mottoA  = new TextArea(userProfile.getMotto());
+        mottoA.setPrefRowCount(3);
+        mottoA.setWrapText(true);
+        mottoA.setPromptText("A short line that keeps you going...");
+
+        HBox quickPicks = new HBox(6);
+        for (String e : new String[]{"👤","🦊","🐼","🐨","🐯","🦁","🐸","🐵","🦉","🐺","🤖","🧑‍💻"}) {
+            Button eb = new Button(e);
+            eb.setStyle("-fx-font-size: 18px; -fx-cursor: hand; -fx-background-color: transparent;");
+            eb.setOnAction(ev -> avatarF.setText(e));
+            quickPicks.getChildren().add(eb);
+        }
+
+        root.getChildren().addAll(
+                new Label("Avatar:"), avatarF, quickPicks,
+                new Label("Name:"), nameF,
+                new Label("Email:"), emailF,
+                new Label("Motto:"), mottoA);
+
+        dialog.getDialogPane().setContent(root);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == saveType) {
+            userProfile.setAvatar(avatarF.getText());
+            userProfile.setName(nameF.getText());
+            userProfile.setEmail(emailF.getText());
+            userProfile.setMotto(mottoA.getText());
+            try {
+                userProfileDAO.save(userProfile);
+                refreshUserButton();
+                showInfo("Profile Saved", "Your profile has been updated.");
+            } catch (SQLException ex) {
+                showWarning("Save failed: " + ex.getMessage());
+            }
         }
     }
 
-    private double computeFocusScore(LocalDate date) {
-        double ratingSum = 0;
-        int ratedCount = 0;
-        int studySec = 0;
-        int screenSec = 0;
+    // ============================================================
+    //  THEME TOGGLE
+    // ============================================================
+    @FXML
+    private void onLightModeToggle() {
+        String next = userProfile.isDark() ? "light" : "dark";
+        userProfile.setTheme(next);
+        try { userProfileDAO.saveTheme(next); }
+        catch (SQLException ex) { System.err.println("[Theme] save failed: " + ex.getMessage()); }
+        applyTheme(next);
+    }
+
+    private void applyTheme(String theme) {
+        if (themeToggleBtn == null || themeToggleBtn.getScene() == null) return;
+
+        var sheets = themeToggleBtn.getScene().getStylesheets();
+        String base  = getClass().getResource("/application/style.css").toExternalForm();
+        String light = getClass().getResource("/application/light.css").toExternalForm();
+
+        sheets.clear();
+        sheets.add(base);
+        if ("light".equalsIgnoreCase(theme)) {
+            sheets.add(light);
+        }
+
+        themeToggleBtn.setText("light".equalsIgnoreCase(theme) ? "[Dark]" : "[Light]");
+    }
+
+    // ============================================================
+    //  NAP TIMER
+    // ============================================================
+    @FXML
+    private void onStartNap() {
+        if (napRunning) return;
+        String txt = napMinutesField.getText();
+        if (txt == null || txt.isBlank()) { showWarning("Please enter nap duration in minutes."); return; }
+        int minutes;
+        try { minutes = Integer.parseInt(txt.trim()); }
+        catch (NumberFormatException ex) { showWarning("Invalid number."); return; }
+
+        if (minutes < NAP_MIN_MINUTES || minutes > NAP_MAX_MINUTES) {
+            showWarning("Nap duration must be between " + NAP_MIN_MINUTES + " and " + NAP_MAX_MINUTES + " minutes.");
+            return;
+        }
+
+        napTargetSeconds = minutes * 60;
+        napElapsedSeconds = 0;
+        napCompleted = false;
+        napRunning = true;
+
+        napMinutesField.setDisable(true);
+        napStartBtn.setDisable(true);
+        napCancelBtn.setVisible(true);
+        napCancelBtn.setManaged(true);
+        updateNapCountdownLabel();
+        statusLabel.setText("● NAP RUNNING — " + minutes + " min");
+
+        napTimer = new TimerThread("nap-timer", 0, new TimerThread.TickListener() {
+            @Override
+            public void onTick(int s) {
+                napElapsedSeconds = s;
+                updateNapCountdownLabel();
+                if (!napCompleted && s >= napTargetSeconds) {
+                    napCompleted = true;
+                    completeNap();
+                }
+            }
+            @Override public void onFinish(int s) { }
+        });
+        napTimer.start();
+    }
+
+    private void updateNapCountdownLabel() {
+        int remaining = napTargetSeconds - napElapsedSeconds;
+        if (remaining < 0) remaining = 0;
+        napCountdownLabel.setText(String.format("%02d:%02d", remaining / 60, remaining % 60));
+    }
+
+    @FXML
+    private void onCancelNap() {
+        if (!napRunning) return;
+        Alert c = new Alert(Alert.AlertType.CONFIRMATION, "Cancel the running nap? It won't be saved.",
+                ButtonType.OK, ButtonType.CANCEL);
+        if (c.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
+        stopNapTimer();
+        resetNapUI();
+        statusLabel.setText("● READY");
+        napCountdownLabel.setText("--:--");
+        showInfo("Nap Cancelled", "The nap was cancelled and not saved.");
+    }
+
+    private void completeNap() {
+        stopNapTimer();
+        int napMinutes = napTargetSeconds / 60;
+
+        Session nap = new Session("Power Nap", "Sleep Time", Mood.CONTENT);
+        nap.setDurationSeconds(napTargetSeconds);
+        nap.setRating(4);
+        nap.setNotes("Auto-logged nap (" + napMinutes + " min)");
+        nap.setStartHour(LocalTime.now().getHour());
+
+        try {
+            sessionDAO.insert(nap);
+            allSessions.add(nap);
+            refreshTable();
+            refreshDashboard();
+            refreshSleepHistory();
+
+            Alert a = new Alert(Alert.AlertType.INFORMATION);
+            a.setTitle("Nap Complete");
+            a.setHeaderText("😴  Nap finished!");
+            a.setContentText("You slept for " + napMinutes + " minutes.\nIt has been added to your Sleep Time activities.");
+            a.showAndWait();
+        } catch (SQLException ex) {
+            showWarning("Failed to save nap: " + ex.getMessage());
+        }
+
+        resetNapUI();
+        statusLabel.setText("● READY");
+        napCountdownLabel.setText("00:00");
+    }
+
+    private void stopNapTimer() {
+        napRunning = false;
+        if (napTimer != null) { napTimer.stopTimer(); napTimer = null; }
+    }
+
+    private void resetNapUI() {
+        napMinutesField.setDisable(false);
+        napStartBtn.setDisable(false);
+        napCancelBtn.setVisible(false);
+        napCancelBtn.setManaged(false);
+    }
+
+    // ============================================================
+    //  SLEEP HISTORY
+    // ============================================================
+    private void refreshSleepHistory() {
+        if (sleepHistoryList == null) return;
+        List<Session> sleepSessions = new ArrayList<>();
+        LocalDate cutoff = LocalDate.now().minusDays(13);
         for (Session s : allSessions) {
-            if (!s.getDate().equals(date)) continue;
-            if ("Study Time".equals(s.getCategory())) {
-                studySec += s.getDurationSeconds();
-                if (s.getRating() > 0) { ratingSum += s.getRating(); ratedCount++; }
-            } else if ("Screen Time".equals(s.getCategory())) {
-                screenSec += s.getDurationSeconds();
+            if (!"Sleep Time".equals(s.getCategory())) continue;
+            if (s.getDate().isBefore(cutoff)) continue;
+            sleepSessions.add(s);
+        }
+        sleepSessions.sort((a, b) -> b.getDate().compareTo(a.getDate()));
+
+        ObservableList<String> items = FXCollections.observableArrayList();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("EEE, dd MMM");
+        for (Session s : sleepSessions) {
+            items.add(String.format("%-16s   %-10s   %s",
+                    s.getDate().format(fmt),
+                    s.getDurationFormatted(),
+                    s.getActivity()));
+        }
+        if (items.isEmpty()) items.add("No sleep entries in the last 14 days.");
+        sleepHistoryList.setItems(items);
+    }
+
+    // ============================================================
+    //  DND
+    // ============================================================
+    @FXML
+    private void onDndOn() {
+        if (dndActive) return;
+        Alert c = new Alert(Alert.AlertType.CONFIRMATION,
+                "Turn ON Do Not Disturb?\n\nOnly the Study Time tab will remain accessible.",
+                ButtonType.OK, ButtonType.CANCEL);
+        if (c.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) return;
+
+        dndActive = true;
+        updateDndUi();
+        switchTab("Study Time", tabStudy);
+        showInfo("Do Not Disturb", "DND mode is now ON.\nOnly Study Time is accessible.");
+    }
+
+    @FXML
+    private void onDndOff() {
+        if (!dndActive) return;
+        dndActive = false;
+        updateDndUi();
+        showInfo("Do Not Disturb", "DND mode is now OFF.\nAll tabs are accessible again.");
+    }
+
+    private void updateDndUi() {
+        if (dndActive) {
+            dndStatusLabel.setText("ACTIVE");
+            dndStatusLabel.getStyleClass().removeAll("dnd-status-off", "dnd-status-on");
+            dndStatusLabel.getStyleClass().add("dnd-status-on");
+            dndCard.getStyleClass().removeAll("dnd-off", "dnd-on");
+            dndCard.getStyleClass().add("dnd-on");
+            dndOnBtn.setDisable(true);
+            dndOffBtn.setDisable(false);
+            tabScreen.setDisable(true);
+            tabSleep.setDisable(true);
+            tabJournal.setDisable(true);
+            dndStatusBarLabel.setText("🔴 DND ACTIVE");
+            dndStatusBarLabel.setVisible(true);
+            dndStatusBarLabel.setManaged(true);
+        } else {
+            dndStatusLabel.setText("OFF");
+            dndStatusLabel.getStyleClass().removeAll("dnd-status-off", "dnd-status-on");
+            dndStatusLabel.getStyleClass().add("dnd-status-off");
+            dndCard.getStyleClass().removeAll("dnd-off", "dnd-on");
+            dndCard.getStyleClass().add("dnd-off");
+            dndOnBtn.setDisable(false);
+            dndOffBtn.setDisable(true);
+            tabScreen.setDisable(false);
+            tabSleep.setDisable(false);
+            tabJournal.setDisable(false);
+            dndStatusBarLabel.setVisible(false);
+            dndStatusBarLabel.setManaged(false);
+        }
+    }
+
+    private boolean blockIfDnd(String targetCategory) {
+        if (!dndActive) return false;
+        if ("Study Time".equals(targetCategory)) return false;
+        Alert a = new Alert(Alert.AlertType.WARNING);
+        a.setTitle("DND Active");
+        a.setHeaderText("🚫  Do Not Disturb is ON");
+        a.setContentText("Only Study Time is accessible.\nTurn DND OFF from the right panel.");
+        a.showAndWait();
+        return true;
+    }
+
+    // ============================================================
+    //  PREPARE JOURNAL
+    // ============================================================
+    @FXML
+    private void onPrepareJournal() {
+        LocalDate date = journalDatePicker.getValue();
+        if (date == null) date = LocalDate.now();
+
+        List<Session> daySessions = new ArrayList<>();
+        for (Session s : allSessions) if (s.getDate().equals(date)) daySessions.add(s);
+        daySessions.sort(Comparator.comparingInt(Session::getStartHour));
+
+        JournalEntry entry;
+        try { entry = journalDAO.getByDate(date); }
+        catch (SQLException ex) { entry = new JournalEntry(date); }
+
+        StringBuilder sb = new StringBuilder();
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy");
+
+        sb.append("═══════════════════════════════════════════════════════\n");
+        sb.append("              PASTM  —  DAILY JOURNAL REPORT\n");
+        sb.append("═══════════════════════════════════════════════════════\n");
+        sb.append("  User: ").append(userProfile.getName().isBlank() ? "(unnamed)" : userProfile.getName()).append("\n");
+        sb.append("  Date: ").append(date.format(dateFmt)).append("\n");
+        sb.append("  Generated: ").append(LocalDate.now()).append("\n\n");
+
+        int studySec = 0, screenSec = 0, sleepSec = 0;
+        for (Session s : daySessions) {
+            switch (s.getCategory()) {
+                case "Study Time":  studySec  += s.getDurationSeconds(); break;
+                case "Screen Time": screenSec += s.getDurationSeconds(); break;
+                case "Sleep Time":  sleepSec  += s.getDurationSeconds(); break;
             }
         }
-        double avgRating = ratedCount > 0 ? ratingSum / ratedCount : 0;
-        double studyMin = studySec / 60.0;
-        double screenMin = screenSec / 60.0;
-        return Math.max(0, avgRating * studyMin - screenMin * 0.5);
+
+        sb.append("─── TIME BUDGET ───────────────────────────────────────\n");
+        sb.append(String.format("  Study Time:  %s%n",  fmtSec(studySec)));
+        sb.append(String.format("  Screen Time: %s%n",  fmtSec(screenSec)));
+        sb.append(String.format("  Sleep Time:  %s%n",  fmtSec(sleepSec)));
+        sb.append("\n");
+
+        List<String> order = Arrays.asList("Study Time", "Screen Time", "Sleep Time");
+        for (String cat : order) {
+            List<Session> bucket = new ArrayList<>();
+            for (Session s : daySessions) if (s.getCategory().equals(cat)) bucket.add(s);
+            if (bucket.isEmpty()) continue;
+
+            sb.append("─── ").append(cat.toUpperCase()).append(" ─────────────────────────────────\n");
+            for (Session s : bucket) {
+                sb.append("  • ").append(padRight(s.getActivity(), 22))
+                        .append(padRight(s.getDurationFormatted(), 12))
+                        .append("rating=").append(s.getRating()).append("/5");
+                if (s.isFavorite()) sb.append("  ⭐");
+                sb.append("\n");
+                if (!s.getNotes().isEmpty()) {
+                    for (String line : s.getNotes().split("\n")) {
+                        sb.append("        ").append(line).append("\n");
+                    }
+                }
+            }
+            sb.append("\n");
+        }
+
+        sb.append("─── JOURNAL REFLECTIONS ────────────────────────────────\n");
+        if (!entry.getMorning().isBlank())   sb.append("  MORNING:   ").append(entry.getMorning()).append("\n");
+        if (!entry.getNoon().isBlank())      sb.append("  NOON:      ").append(entry.getNoon()).append("\n");
+        if (!entry.getAfternoon().isBlank()) sb.append("  AFTERNOON: ").append(entry.getAfternoon()).append("\n");
+        if (!entry.getEvening().isBlank())   sb.append("  EVENING:   ").append(entry.getEvening()).append("\n");
+        if (!entry.getNight().isBlank())     sb.append("  NIGHT:     ").append(entry.getNight()).append("\n");
+        if (entry.getTotalWords() == 0)      sb.append("  (No reflections recorded.)\n");
+
+        sb.append("\n═══════════════════════════════════════════════════════\n");
+        sb.append("  End of report — ").append(daySessions.size()).append(" sessions logged.\n");
+        sb.append("═══════════════════════════════════════════════════════\n");
+
+        String filename = "PASTM_Journal_" + date + ".txt";
+        try {
+            Files.writeString(Paths.get(filename), sb.toString());
+            showInfo("Journal Prepared",
+                    "Saved to: " + System.getProperty("user.dir") + "\\" + filename
+                            + "\n\n" + daySessions.size() + " sessions · " + entry.getTotalWords() + " words");
+        } catch (Exception ex) {
+            showWarning("Failed to write journal: " + ex.getMessage());
+        }
     }
 
     // ============================================================
@@ -272,13 +688,9 @@ public class MainWindowController {
         weekChart.getData().clear();
         try {
             Map<String, Map<String, Integer>> data = sessionDAO.getDailyTotalsLast7Days();
-
-            XYChart.Series<String, Number> studySeries  = new XYChart.Series<>();
-            studySeries.setName("Study");
-            XYChart.Series<String, Number> screenSeries = new XYChart.Series<>();
-            screenSeries.setName("Screen");
-            XYChart.Series<String, Number> sleepSeries  = new XYChart.Series<>();
-            sleepSeries.setName("Sleep");
+            XYChart.Series<String, Number> studySeries  = new XYChart.Series<>(); studySeries.setName("Study");
+            XYChart.Series<String, Number> screenSeries = new XYChart.Series<>(); screenSeries.setName("Screen");
+            XYChart.Series<String, Number> sleepSeries  = new XYChart.Series<>(); sleepSeries.setName("Sleep");
 
             DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("EEE");
             for (int i = 6; i >= 0; i--) {
@@ -293,29 +705,22 @@ public class MainWindowController {
                 screenSeries.getData().add(new XYChart.Data<>(label, screen));
                 sleepSeries.getData().add(new XYChart.Data<>(label, sleep));
             }
-
             weekChart.getData().addAll(studySeries, screenSeries, sleepSeries);
-
             Platform.runLater(() -> {
                 styleSeries(studySeries,  "#d97706");
                 styleSeries(screenSeries, "#ef4444");
                 styleSeries(sleepSeries,  "#8052d2");
             });
-        } catch (SQLException ex) {
-            System.err.println("[Chart] weekly failed: " + ex.getMessage());
-        }
+        } catch (SQLException ex) { System.err.println("[Chart] weekly failed: " + ex.getMessage()); }
     }
 
     private void styleSeries(XYChart.Series<String, Number> series, String color) {
-        for (XYChart.Data<String, Number> data : series.getData()) {
-            if (data.getNode() != null) {
-                data.getNode().setStyle("-fx-bar-fill: " + color + ";");
-            }
-        }
+        for (XYChart.Data<String, Number> data : series.getData())
+            if (data.getNode() != null) data.getNode().setStyle("-fx-bar-fill: " + color + ";");
     }
 
     // ============================================================
-    //  DAILY GOALS
+    //  GOALS
     // ============================================================
     private void updateGoalsProgress() {
         try {
@@ -337,9 +742,7 @@ public class MainWindowController {
             applyGoal(goalStudyBar,  goalStudyText,  studyActual,  studyTarget, false);
             applyGoal(goalScreenBar, goalScreenText, screenActual, screenTarget, true);
             applyGoal(goalSleepBar,  goalSleepText,  sleepActual,  sleepTarget, false);
-        } catch (SQLException ex) {
-            System.err.println("[Goals] load failed: " + ex.getMessage());
-        }
+        } catch (SQLException ex) { System.err.println("[Goals] load failed: " + ex.getMessage()); }
     }
 
     private void applyGoal(ProgressBar bar, Label label, int currentSec, int targetMin, boolean isMaxGoal) {
@@ -347,7 +750,6 @@ public class MainWindowController {
         double ratio = targetMin > 0 ? (double) currentMin / targetMin : 0;
         bar.setProgress(Math.min(1.0, ratio));
         label.setText(formatMinutes(currentMin) + " / " + formatMinutes(targetMin));
-
         bar.getStyleClass().removeAll("goal-ok", "goal-warn", "goal-bad");
         if (isMaxGoal) {
             if (ratio >= 1.0) bar.getStyleClass().add("goal-bad");
@@ -394,7 +796,6 @@ public class MainWindowController {
                 new Label("Study Goal (minutes):"), studyF,
                 new Label("Screen Limit (minutes):"), screenF,
                 new Label("Sleep Target (minutes):"), sleepF);
-
         dialog.getDialogPane().setContent(root);
 
         Optional<ButtonType> result = dialog.showAndWait();
@@ -406,9 +807,7 @@ public class MainWindowController {
                         parseInt(sleepF.getText(), DEFAULT_SLEEP_MIN));
                 updateGoalsProgress();
                 showInfo("Saved", "Daily goals updated.");
-            } catch (SQLException ex) {
-                showWarning("Save failed: " + ex.getMessage());
-            }
+            } catch (SQLException ex) { showWarning("Save failed: " + ex.getMessage()); }
         }
     }
 
@@ -515,7 +914,6 @@ public class MainWindowController {
             saveJournalEntry();
             loadJournalForDate(journalDatePicker.getValue());
         });
-
         loadJournalForDate(LocalDate.now());
     }
 
@@ -563,9 +961,7 @@ public class MainWindowController {
         try {
             allSessions.setAll(sessionDAO.getAll());
             System.out.println("[Main] loaded " + allSessions.size() + " sessions from DB");
-        } catch (SQLException ex) {
-            System.err.println("[Main] DB load failed: " + ex.getMessage());
-        }
+        } catch (SQLException ex) { System.err.println("[Main] DB load failed: " + ex.getMessage()); }
     }
 
     private void onSessionProcessed() {
@@ -606,10 +1002,17 @@ public class MainWindowController {
     // ============================================================
     //  TAB HANDLERS
     // ============================================================
-    @FXML private void onTabScreen() { switchTab("Screen Time", tabScreen); }
-    @FXML private void onTabStudy()  { switchTab("Study Time", tabStudy); }
+    @FXML private void onTabScreen() {
+        if (blockIfDnd("Screen Time")) return;
+        switchTab("Screen Time", tabScreen);
+    }
 
-    @FXML private void onTabSleep()  {
+    @FXML private void onTabStudy() {
+        switchTab("Study Time", tabStudy);
+    }
+
+    @FXML private void onTabSleep() {
+        if (blockIfDnd("Sleep Time")) return;
         activeCategory = "Sleep Time";
         setActiveTab(tabSleep);
         mainPanel.setVisible(true); mainPanel.setManaged(true);
@@ -618,9 +1021,11 @@ public class MainWindowController {
         journalPanel.setVisible(false); journalPanel.setManaged(false);
         refreshTable();
         loadSleepForToday();
+        refreshSleepHistory();
     }
 
     @FXML private void onTabJournal() {
+        if (blockIfDnd("Journal")) return;
         activeCategory = "Journal";
         setActiveTab(tabJournal);
         mainPanel.setVisible(false); mainPanel.setManaged(false);
@@ -711,6 +1116,7 @@ public class MainWindowController {
             refreshTable();
             loadSleepForToday();
             refreshDashboard();
+            refreshSleepHistory();
             showInfo("Saved", "Sleep logged: " + sleep.getDurationFormatted());
         } catch (SQLException ex) { showWarning("Save failed: " + ex.getMessage()); }
     }
@@ -718,8 +1124,7 @@ public class MainWindowController {
     @FXML private void onClearSleep() {
         Session existing = findTodaySleep();
         if (existing == null) { showInfo("Nothing to clear", "No sleep entry for today."); return; }
-        Alert c = new Alert(Alert.AlertType.CONFIRMATION,
-                "Delete today's sleep entry?", ButtonType.OK, ButtonType.CANCEL);
+        Alert c = new Alert(Alert.AlertType.CONFIRMATION, "Delete today's sleep entry?", ButtonType.OK, ButtonType.CANCEL);
         if (c.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             try {
                 sessionDAO.delete(existing);
@@ -727,6 +1132,7 @@ public class MainWindowController {
                 refreshTable();
                 loadSleepForToday();
                 refreshDashboard();
+                refreshSleepHistory();
                 showInfo("Cleared", "Today's sleep entry removed.");
             } catch (SQLException ex) { showWarning("Clear failed: " + ex.getMessage()); }
         }
@@ -768,12 +1174,12 @@ public class MainWindowController {
             if (sessionTimer != null) { sessionTimer.stopTimer(); sessionTimer = null; }
             paused = true;
             pauseBtn.setText("▶ RESUME");
-            timerLabel.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 12 0 12;");
+            timerLabel.getStyleClass().add("timer-label-paused");
             statusLabel.setText("● PAUSED");
         } else {
             paused = false;
             pauseBtn.setText("⏸ PAUSE");
-            timerLabel.setStyle("-fx-text-fill: #1c1917; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 12 0 12;");
+            timerLabel.getStyleClass().remove("timer-label-paused");
             statusLabel.setText("● RECORDING " + currentSession.getActivity().toUpperCase());
             startTimer();
         }
@@ -806,7 +1212,7 @@ public class MainWindowController {
 
     private void resetSessionUI() {
         timerLabel.setText("00:00:00");
-        timerLabel.setStyle("-fx-text-fill: #1c1917; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 0 12 0 12;");
+        timerLabel.getStyleClass().remove("timer-label-paused");
         activityField.clear();
         activityField.setDisable(false);
         activityChipBox.setDisable(false);
@@ -857,15 +1263,13 @@ public class MainWindowController {
         helpedLbl.setStyle("-fx-font-weight: bold;");
         TextArea helpedArea = new TextArea();
         helpedArea.setPromptText("Good environment, clear goal, no phone...");
-        helpedArea.setPrefRowCount(2);
-        helpedArea.setWrapText(true);
+        helpedArea.setPrefRowCount(2); helpedArea.setWrapText(true);
 
         Label distractedLbl = new Label("⚠ What distracted or slowed you down?");
         distractedLbl.setStyle("-fx-font-weight: bold;");
         TextArea distractedArea = new TextArea();
         distractedArea.setPromptText("Notifications, unclear task, wrong time of day...");
-        distractedArea.setPrefRowCount(2);
-        distractedArea.setWrapText(true);
+        distractedArea.setPrefRowCount(2); distractedArea.setWrapText(true);
 
         root.getChildren().addAll(ratingLbl, stars, new Separator(),
                 helpedLbl, helpedArea, distractedLbl, distractedArea);
@@ -908,8 +1312,7 @@ public class MainWindowController {
             stars.getChildren().add(starLabels[i]);
         }
         TextArea notes = new TextArea(s.getNotes());
-        notes.setPrefRowCount(5);
-        notes.setWrapText(true);
+        notes.setPrefRowCount(5); notes.setWrapText(true);
         root.getChildren().addAll(new Label("Rating:"), stars,
                 new Label("Reflection (Helped / Distracted):"), notes);
         dialog.getDialogPane().setContent(root);
@@ -931,6 +1334,8 @@ public class MainWindowController {
             List<Session> last7 = sessionDAO.getLast7Days();
             StringBuilder sb = new StringBuilder();
             sb.append("PASTM Weekly Report\n");
+            if (!userProfile.getName().isBlank())
+                sb.append("User: ").append(userProfile.getName()).append("\n");
             sb.append("Generated: ").append(LocalDate.now()).append("\n");
             sb.append("─────────────────────────────────────────\n\n");
             int totalSec = 0;
@@ -962,22 +1367,28 @@ public class MainWindowController {
     }
 
     // ============================================================
-    //  HEADER ACTIONS
+    //  DAILY TIP — JSON FEATURE
     // ============================================================
-    @FXML private void onLightModeToggle() { showInfo("Theme", "Coming soon."); }
-    @FXML private void onUserClicked() { showInfo("Profile", "Coming soon."); }
-
-    @FXML private void onRefreshTip() {
-        List<Session> snapshot = new ArrayList<>(allSessions);
-        Future<String> future = threadManager.submitCalculation(new StatsCalculator(snapshot));
+    private void loadInitialTip() {
         new Thread(() -> {
-            try {
-                String stats = future.get();
-                Platform.runLater(() -> showInfo("Today's Stats", stats));
-            } catch (Exception ex) {
-                Platform.runLater(() -> showWarning("Stats failed: " + ex.getMessage()));
-            }
-        }, "stats-waiter").start();
+            Tip tip = tipService.fetchRandomTip();
+            Platform.runLater(() -> showTip(tip));
+        }, "tip-loader").start();
+    }
+
+    @FXML
+    private void onRefreshTip() {
+        new Thread(() -> {
+            Tip tip = tipService.fetchRandomTip();
+            Platform.runLater(() -> showTip(tip));
+        }, "tip-fetcher").start();
+    }
+
+    private void showTip(Tip tip) {
+        if (tip == null) return;
+        tipLabel.setText("\"" + tip.getContent() + "\"");
+        String author = tip.getAuthor() == null ? "UNKNOWN" : tip.getAuthor().toUpperCase();
+        tipAttributionLabel.setText("— " + author);
     }
 
     // ============================================================
@@ -996,7 +1407,9 @@ public class MainWindowController {
     //  LIFECYCLE
     // ============================================================
     public void stopAll() {
+        if (clockTimeline != null) { clockTimeline.stop(); clockTimeline = null; }
         if (sessionTimer != null) { sessionTimer.stopTimer(); sessionTimer = null; }
+        if (napTimer != null) { napTimer.stopTimer(); napTimer = null; }
         reminderService.shutdown();
     }
 

@@ -41,17 +41,29 @@ public class Database {
                 "target_minutes INTEGER NOT NULL, " +
                 "PRIMARY KEY (date, category))";
 
+        // NEW: single-row user profile table
+        String userProfile = "CREATE TABLE IF NOT EXISTS user_profile (" +
+                "id INTEGER PRIMARY KEY CHECK (id = 1), " +
+                "name   TEXT DEFAULT '', " +
+                "email  TEXT DEFAULT '', " +
+                "avatar TEXT DEFAULT '👤', " +
+                "motto  TEXT DEFAULT '', " +
+                "theme  TEXT DEFAULT 'dark')";
+
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
             stmt.execute(sessions);
             stmt.execute(journal);
             stmt.execute(dailyGoals);
+            stmt.execute(userProfile);
 
             ensureColumn(conn, "sessions", "start_hour", "INTEGER NOT NULL DEFAULT 12");
             ensureColumn(conn, "journal", "noon",      "TEXT DEFAULT ''");
             ensureColumn(conn, "journal", "afternoon", "TEXT DEFAULT ''");
             ensureColumn(conn, "journal", "evening",   "TEXT DEFAULT ''");
             ensureColumn(conn, "journal", "night",     "TEXT DEFAULT ''");
+            ensureColumn(conn, "user_profile", "motto", "TEXT DEFAULT ''");
+            ensureColumn(conn, "user_profile", "theme", "TEXT DEFAULT 'dark'");
 
             System.out.println("[Database] initialized: lifesync.db ready.");
         } catch (SQLException e) {
